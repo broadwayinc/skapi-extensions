@@ -1,19 +1,18 @@
-export class Dir {
-    _directory: Directory;
+export default class Dir {
+    _directory: Directory; // you can also give me the reactive object
     _skapi: any;
     _service: string;
 
-    constructor(skapi: any, service: string) {
-        this._directory = {};
+    constructor(skapi: any, service: string, directory: Directory) {
         this._skapi = skapi;
         this._service = service;
+        this._directory = directory || {};
     }
 
     getParentDirectory(path: string): Promise<FolderContents> {
         if (!path) {
             throw 'No parent directory found'
         }
-
         if (path[path.length - 1] !== '/') {
             throw 'Invaild folder path'
         }
@@ -23,20 +22,22 @@ export class Dir {
     }
 
     _fileNormalizer(item: FileFromServer | FolderFromServer) {
+        let nameSplit = item.name.split('/');
+        let subdomain = nameSplit[0];
+
         if (item.type === 'folder') {
-            let pathSlice = item.name.split('/').slice(1, -2);
+            let pathSlice = nameSplit.slice(1, -1);
+            let path = pathSlice.join('/') + '/';
             return {
                 ...item,
-                path: pathSlice.join('/') + '/',
+                path,
                 name: pathSlice[pathSlice.length - 1],
-                goto: (): Promise<FolderContents> => this.getDirectory({ path: item.name, fetchMore: false })
+                goto: (): Promise<FolderContents> => this.getDirectory({ path, fetchMore: false })
             }
         }
         else {
-            let pathSlice = item.name.split('/').slice(1, -1);
-            let pathWithoutSubdomain = pathSlice.join('/');
-            let subdomain = pathSlice[0];
-
+            let pathSlice = nameSplit.slice(1);
+            let pathWithoutSubdomain = encodeURIComponent(pathSlice.join('/'));
             let { size, type, lastModified } = item;
 
             return {
@@ -44,16 +45,14 @@ export class Dir {
                 path: pathSlice.join('/'),
                 name: pathSlice[pathSlice.length - 1],
                 url: `https://${subdomain}.skapi.com/${pathWithoutSubdomain}`,
-                goto: (): void => {
-                    this._skapi.getFile(
-                        `https://${subdomain}.skapi.com/${pathWithoutSubdomain}`,
-                        {
-                            dataType: 'download',
-                            noCdn: true,
-                            service: this._service
-                        }
-                    );
-                }
+                goto: (): Promise<void> => this._skapi.getFile(
+                    `https://${subdomain}.skapi.com/${pathWithoutSubdomain}`,
+                    {
+                        dataType: 'download',
+                        noCdn: true,
+                        service: this._service
+                    }
+                )
             }
         }
     }
@@ -62,7 +61,7 @@ export class Dir {
         path: string,
         target: HTMLInputElement,
         cb: (p: Progress) => void
-    }): Promise<FileObject[]> {
+    }): Promise<FolderContents> {
         let { path, target, cb } = params || {};
         const files = target.files;
         const formData = new FormData();
@@ -109,7 +108,7 @@ export class Dir {
             })
         }
 
-        return list;
+        return this._directory[params.path];
     }
 
     async getDirectory(params?: { path?: string, fetchMore?: boolean }): Promise<FolderContents> {
@@ -126,7 +125,7 @@ export class Dir {
         if (this._directory?.[path]) {
             if (this._directory[path].endOfList) {
                 if (fetchMore) {
-                    let res = await this._skapi.listHostDirectory({ service: this._service, dir: path }, { fetchMore });
+                    let res = await this._skapi.listHostDirectory({ service: this._service, dir: path }, { fetchMore: true });
                     this._directory[path].list.push(...res.list.map((item: FileFromServer | FolderFromServer) => this._fileNormalizer(item)));
                     this._directory[path].endOfList = res.endOfList;
                 }
@@ -138,14 +137,23 @@ export class Dir {
         let fullPath = '';
         let pathArray = path.split('/').slice(0, -1);
         let breadcrumb = pathArray.map(folderName => {
-            fullPath += '/' + folderName;
+            fullPath += folderName;
             let p = fullPath + '/';
             return {
-                name: folderName,
+                name: folderName || '/',
                 path: p,
                 goto: () => this.getDirectory({ path: p })
             }
-        })
+        });
+
+        if (breadcrumb[0].name !== '/') {
+            // if not root folder, add root folder to breadcrumb
+            breadcrumb.unshift({
+                name: '/',
+                path: '/',
+                goto: () => this.getDirectory({ path: '/' })
+            })
+        }
 
         let res = await this._skapi.listHostDirectory({ service: this._service, dir: path }, { fetchMore });
         this._directory[path] = {

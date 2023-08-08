@@ -12,7 +12,7 @@ type FileObject = {
     size: number; // 123456, (bytes)
     lastModified: number; // 1234567890
     url: string; // "https://subdomain.skapi.com/path/to/file.ext"
-    goto: () => void; // downloads the file
+    goto: () => Promise<void>; // downloads the file
 }
 
 type FolderContents = {
@@ -21,7 +21,7 @@ type FolderContents = {
     breadcrumb: {
         name: string;
         path: string;
-        goto: () => Promise<FolderContents>;
+        goto: () => Promise<FolderContents | void>;
     }[];
     list: Array<FileObject | FolderObject>;
 };

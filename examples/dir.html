@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<script src="https://cdn.jsdelivr.net/npm/skapi-js@latest/dist/skapi.js"></script>
+
+<form id="login" onsubmit="skapi.login(event, { response: u=>{ user=u; login.hidden=true; } })" hidden>
+    <input type="email" name="email" placeholder="Email" />
+    <input type="password" name="password" placeholder="Password" />
+    <input type="submit" value="Login" />
+</form>
+
+<form id="setId" method="get" hidden>
+    <label>
+        Service ID:
+        <input type="text" name='service-id'>
+    </label>
+    <input type="submit">
+</form>
+
+<h1 id="service"></h1>
+<div id="bread"></div>
+<div id="files"></div>
+
+<style>
+    #files>div {
+        cursor: pointer;
+        background-color: black;
+        color: greenyellow;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+    }
+</style>
+
+<script type="module">
+    import Dir from '/js/dir.js';
+    
+    let skapi = new Skapi('us31zettahertzesskpi', 'skapi');
+
+    function displayData(dat) {
+        if (!dat) return;
+
+        bread.innerHTML = '';
+        files.innerHTML = '<p>Click to goto folder or open file, Right click to delete</p>';
+
+        // up button
+        let upButton = document.createElement('button');
+        upButton.textContent = 'UP';
+        upButton.addEventListener('click', () => {
+            window.dir.getParentDirectory(dat.path).then(displayData);
+        });
+        bread.appendChild(upButton);
+
+        // breadcrumb
+        for (let b of dat.breadcrumb) {
+            let button = document.createElement('button');
+            button.textContent = b.name;
+            button.addEventListener('click', () => {
+                b.goto().then(displayData);
+            });
+            bread.appendChild(button);
+        }
+
+        // files
+        for (let f of dat.list) {
+            let div = document.createElement('div');
+            div.textContent = f.name;
+            div.addEventListener('click', () => {
+                f.goto().then(displayData);
+            });
+            div.addEventListener('contextmenu', function (event) {
+                event.preventDefault();
+                if (window.confirm(`Delete ${f.name}?`)) {
+                    window.dir.deleteFiles(f.path).then(() => window.alert('Deleted'));
+                }
+            });
+            files.appendChild(div);
+        }
+
+        // more button
+        if (!dat.endOfList) {
+            let button = document.createElement('button');
+            button.textContent = 'More';
+            button.addEventListener('click', () => {
+                dat.getDirectory({path: dat.path, fetchMore: true}).then(displayData);
+            });
+        }
+    }
+
+    skapi.getProfile().then(profile => {
+        if (profile) {
+            login.hidden = true;
+
+            const url = new URL(window.location.href);
+            const params = new URLSearchParams(url.search);
+            let serviceId = params.get('service-id');
+            if (serviceId) {
+                service.textContent = 'Service: ' + serviceId;
+                setId.hidden = true;
+                window.dir = new Dir(skapi, serviceId);
+                window.dir.getDirectory().then(displayData);
+            }
+            else {
+                setId.hidden = false;
+            }
+        }
+    });
+
+</script>

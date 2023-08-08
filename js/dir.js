@@ -1,4 +1,4 @@
-export class Dir {
+export default class Dir {
     constructor(skapi, service) {
         this._directory = {};
         this._skapi = skapi;
@@ -15,32 +15,32 @@ export class Dir {
         return this.getDirectory({ path: pathArray.slice(0, -2).join('/') + '/' });
     }
     _fileNormalizer(item) {
+        let nameSplit = item.name.split('/');
+        let subdomain = nameSplit[0];
         if (item.type === 'folder') {
-            let pathSlice = item.name.split('/').slice(1, -2);
+            let pathSlice = nameSplit.slice(1, -1);
+            let path = pathSlice.join('/') + '/';
             return {
                 ...item,
-                path: pathSlice.join('/') + '/',
+                path,
                 name: pathSlice[pathSlice.length - 1],
-                goto: () => this.getDirectory({ path: item.name, fetchMore: false })
+                goto: () => this.getDirectory({ path, fetchMore: false })
             };
         }
         else {
-            let pathSlice = item.name.split('/').slice(1, -1);
-            let pathWithoutSubdomain = pathSlice.join('/');
-            let subdomain = pathSlice[0];
+            let pathSlice = nameSplit.slice(1);
+            let pathWithoutSubdomain = encodeURIComponent(pathSlice.join('/'));
             let { size, type, lastModified } = item;
             return {
                 size, type, lastModified,
                 path: pathSlice.join('/'),
                 name: pathSlice[pathSlice.length - 1],
                 url: `https://${subdomain}.skapi.com/${pathWithoutSubdomain}`,
-                goto: () => {
-                    this._skapi.getFile(`https://${subdomain}.skapi.com/${pathWithoutSubdomain}`, {
-                        dataType: 'download',
-                        noCdn: true,
-                        service: this._service
-                    });
-                }
+                goto: () => this._skapi.getFile(`https://${subdomain}.skapi.com/${pathWithoutSubdomain}`, {
+                    dataType: 'download',
+                    noCdn: true,
+                    service: this._service
+                })
             };
         }
     }
@@ -79,7 +79,7 @@ export class Dir {
                 }
             });
         }
-        return list;
+        return this._directory[params.path];
     }
     async getDirectory(params) {
         let { path = '/', fetchMore = false } = params || {};
@@ -92,7 +92,7 @@ export class Dir {
         if (this._directory?.[path]) {
             if (this._directory[path].endOfList) {
                 if (fetchMore) {
-                    let res = await this._skapi.listHostDirectory({ service: this._service, dir: path }, { fetchMore });
+                    let res = await this._skapi.listHostDirectory({ service: this._service, dir: path }, { fetchMore: true });
                     this._directory[path].list.push(...res.list.map((item) => this._fileNormalizer(item)));
                     this._directory[path].endOfList = res.endOfList;
                 }
@@ -102,14 +102,21 @@ export class Dir {
         let fullPath = '';
         let pathArray = path.split('/').slice(0, -1);
         let breadcrumb = pathArray.map(folderName => {
-            fullPath += '/' + folderName;
+            fullPath += folderName;
             let p = fullPath + '/';
             return {
-                name: folderName,
+                name: folderName || '/',
                 path: p,
                 goto: () => this.getDirectory({ path: p })
             };
         });
+        if (breadcrumb[0].name !== '/') {
+            breadcrumb.unshift({
+                name: '/',
+                path: '/',
+                goto: () => this.getDirectory({ path: '/' })
+            });
+        }
         let res = await this._skapi.listHostDirectory({ service: this._service, dir: path }, { fetchMore });
         this._directory[path] = {
             list: res.list.map((item) => this._fileNormalizer(item)),
