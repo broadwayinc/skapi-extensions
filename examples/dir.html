@@ -31,7 +31,7 @@
 
 <script type="module">
     import Dir from '/js/dir.js';
-    
+
     let skapi = new Skapi('us31zettahertzesskpi', 'skapi');
 
     function displayData(dat) {
@@ -84,18 +84,31 @@
         }
     }
 
-    skapi.getProfile().then(profile => {
+    skapi.getProfile().then(async profile => {
         if (profile) {
             login.hidden = true;
 
             const url = new URL(window.location.href);
             const params = new URLSearchParams(url.search);
-            let serviceId = params.get('service-id');
-            if (serviceId) {
-                service.textContent = 'Service: ' + serviceId;
-                setId.hidden = true;
-                window.dir = new Dir(skapi, serviceId);
-                window.dir.getDirectory().then(displayData);
+            let service_id = params.get('service-id');
+
+            if (service_id) {
+                let service_list = await skapi.request('get-services', {service_id}, {
+                    auth: true
+                });
+                console.log(service_list)
+                for (let region in service_list) {
+                    for (let service of service_list[region]) {
+                        console.log(service)
+                        if (service.service === service_id) {
+                            service.textContent = 'Service: ' + service_id;
+                            setId.hidden = true;
+                            window.dir = new Dir(skapi, service);
+                            window.dir.getDirectory().then(displayData);
+                            return;
+                        }
+                    }
+                }
             }
             else {
                 setId.hidden = false;
