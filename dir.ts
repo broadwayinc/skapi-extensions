@@ -1,11 +1,11 @@
 export default class Dir {
     _directory: Directory; // you can also give me the reactive object
     _skapi: any;
-    _service: string;
+    _service: { [key: string]: any };
 
-    constructor(skapi: any, service: string, directory: Directory) {
+    constructor(skapi: any, service: { [key: string]: any }, directory: Directory) {
         this._skapi = skapi;
-        this._service = service;
+        this._service.service_id = service;
         this._directory = directory || {};
     }
 
@@ -50,7 +50,7 @@ export default class Dir {
                     {
                         dataType: 'download',
                         noCdn: true,
-                        service: this._service
+                        service: this._service.service_id
                     }
                 )
             }
@@ -81,12 +81,12 @@ export default class Dir {
             }
 
             await this._skapi.uploadFiles(formData, {
-                service: this._service,
+                service: this._service.service_id,
                 request: 'host',
                 progress: p => {
                     if (p.progress >= 100) {
                         let { name, type, size, lastModified } = p.currentFile;
-                        name = params.path + name;
+                        name = this._service.subdomain + '/' + params.path + name;
                         let normalizedFile = this._fileNormalizer({ name, type, size, lastModified });
                         list.push(normalizedFile);
 
@@ -125,7 +125,7 @@ export default class Dir {
         if (this._directory?.[path]) {
             if (this._directory[path].endOfList) {
                 if (fetchMore) {
-                    let res = await this._skapi.listHostDirectory({ service: this._service, dir: path }, { fetchMore: true });
+                    let res = await this._skapi.listHostDirectory({ service: this._service.service_id, dir: path }, { fetchMore: true });
                     this._directory[path].list.push(...res.list.map((item: FileFromServer | FolderFromServer) => this._fileNormalizer(item)));
                     this._directory[path].endOfList = res.endOfList;
                 }
@@ -155,7 +155,7 @@ export default class Dir {
             })
         }
 
-        let res = await this._skapi.listHostDirectory({ service: this._service, dir: path }, { fetchMore });
+        let res = await this._skapi.listHostDirectory({ service: this._service.service_id, dir: path }, { fetchMore });
         this._directory[path] = {
             list: res.list.map((item: FileFromServer | FolderFromServer) => this._fileNormalizer(item)),
             endOfList: res.endOfList,
@@ -174,7 +174,7 @@ export default class Dir {
         // delete from server
         await this._skapi.deleteFiles({
             endpoints: filePaths,
-            service: this._service,
+            service: this._service.service_id,
             storage: 'host'
         });
 
