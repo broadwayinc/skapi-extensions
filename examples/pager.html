@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<script src="https://cdn.jsdelivr.net/npm/skapi-js@latest/dist/skapi.js"></script>
+
+<form id="login" onsubmit="skapi.login(event, { response: u=>{ user=u; login.hidden=true; } })" hidden>
+    <input type="email" name="email" placeholder="Email" />
+    <input type="password" name="password" placeholder="Password" />
+    <input type="submit" value="Login" />
+</form>
+
+<form id="setId" method="get" hidden>
+    <label>
+        Service ID:
+        <input type="text" name='service-id'>
+    </label>
+    <input type="submit">
+</form>
+
+<h1>Users</h1>
+<input type="text" placeholder="name" id="userNameEl" />
+<button id="addUserBtn">Add User</button>
+<table id="tableEl">
+
+</table>
+<div id="pagerEl">
+
+</div>
+<style>
+    #files>div {
+        cursor: pointer;
+        background-color: black;
+        color: greenyellow;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+    }
+</style>
+
+<script type="module">
+    import Pager from '/js/pager.js';
+
+    const url = new URL(window.location.href);
+    const params = new URLSearchParams(url.search);
+    let service_id = params.get('service-id');
+
+    let skapi = new Skapi('us31zettahertzesskpi', 'skapi');
+    skapi.getProfile().then(async profile => {
+        let currentPage = 1;
+
+        if (profile.email) {
+            const pager = new Pager({ id: 'user_id' });
+            let params = {
+                service: 'us31ZD3hmNFitkvRQqJm',
+                searchFor: 'timestamp',
+                condition: '>=',
+                value: 0
+            };
+            let users = await skapi.getUsers(params);
+            let pageCount = pager.addList(params, users.list);
+            if (pageCount) {
+                getPage(params, currentPage);
+            }
+
+            function getPage(params, i) {
+                tableEl.innerHTML = '';
+                let page = pager.getPage(params, i);
+                page.list.forEach(item => {
+                    let tr = document.createElement('tr');
+                    let deleteBtn = document.createElement('button');
+                    deleteBtn.innerText = 'Delete';
+                    deleteBtn.addEventListener('click', async () => {
+                        let res = await pager.delete([item.user_id])
+                        getPage(params, i)
+                    })
+
+                    let td = document.createElement('td');
+                    td.append(deleteBtn)
+                    let tdName = document.createElement('td');
+                    tdName.innerText = item.name;
+                    tr.append(td);
+                    tr.append(tdName);
+
+                    tableEl.appendChild(tr)
+                });
+                createPageButtons(page.maxPage);
+
+                function createPageButtons(maxPage) {
+                    pagerEl.innerHTML = '';
+                    for (let i = 1; i <= maxPage; i++) {
+                        let btn = document.createElement('button')
+                        btn.innerText = i;
+                        btn.addEventListener('click', () => {
+                            currentPage = i;
+                            getPage(params, i);
+                        });
+                        pagerEl.appendChild(btn);
+                    }
+                }
+
+            }
+
+            addUserBtn.addEventListener('click', () => {
+                let hash = 0;
+                let str = userNameEl.value;
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash |= 0;
+                }
+
+                pager.insertItem(params, {name: userNameEl.value, user_id: hash >>> 0})
+                getPage(params, currentPage);
+            });
+        }
+    });
+</script>

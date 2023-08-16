@@ -1,6 +1,6 @@
 {
     "files": [
-      "dir.ts", "admin.ts"
+      "dir.ts", "admin.ts", "pager.ts"
     ],
     "include": ["*.d.ts"],
     "compilerOptions": {

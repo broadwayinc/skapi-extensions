@@ -1,5 +1,8 @@
 export default class Dir {
     constructor(skapi, service, directory) {
+        if (!service.subdomain) {
+            throw 'Service subdomain is required';
+        }
         this._skapi = skapi;
         this._service = service;
         this._service_id = service.service;
