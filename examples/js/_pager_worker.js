@@ -1,5 +1,5 @@
 self.addEventListener('message', (event) => {
-    let { items, list, maps, exec, idKey, ascending = true } = event.data;
+    let { items, list, maps, exec, idKey } = event.data;
     let itemIds = [];
 
     for (let item of items) {
@@ -8,8 +8,9 @@ self.addEventListener('message', (event) => {
 
         for (let indexKey in maps) {
             let keyValue;
-            let keys = indexKey.split('.');
-
+            let keys = indexKey.substring(1).split('.');
+            let ascending = indexKey.charAt(0) === '+';
+            
             for (let k of keys) {
                 keyValue = keyValue?.[k] || item[k];
             }
@@ -30,8 +31,6 @@ self.addEventListener('message', (event) => {
 
             else {
                 let previousItem = list?.[itemId];
-
-                let keys = indexKey.split('.');
 
                 for (let k of keys) {
                     keyValue = keyValue?.[k] || item[k];

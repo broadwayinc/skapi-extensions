@@ -23,7 +23,8 @@ export default class Pager {
 
     async addList(
         list: { [key: string]: any }[], // list of items fetched from the server
-        index?: string // index to map the list to: (ex) 'index.value' , 'name'
+        index?: string, // index to map the list to: (ex) 'index.value' , 'name'
+        ascending?: boolean // list order
     ): Promise<"List added to pager."> {
         if (!list.length) {
             return "List added to pager.";
@@ -32,6 +33,9 @@ export default class Pager {
         if (!index) {
             index = this.idKey;
         }
+
+        ascending = typeof ascending === 'boolean' ? ascending : true;
+        index = (ascending ? '+' : '-') + index;
 
         if (!this._maps?.[index]) {
             this._maps[index] = [];
@@ -54,7 +58,7 @@ export default class Pager {
         return "List added to pager.";
     }
 
-    async getPage(page: number, index?: string): Promise<{
+    async getPage(page: number, index?: string, ascending?: boolean): Promise<{
         list: { [id: string]: any }[],
         maxPage: number
     }> {
@@ -62,6 +66,9 @@ export default class Pager {
         if (!index) {
             index = this.idKey;
         }
+
+        ascending = typeof ascending === 'boolean' ? ascending : true;
+        index = (ascending ? '+' : '-') + index;
 
         let startIndex = (page - 1) * this.resultsPerPage;
         let result = this._maps[index].slice(startIndex, startIndex + this.resultsPerPage);

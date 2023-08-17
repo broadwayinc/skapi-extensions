@@ -6,13 +6,15 @@ export default class Pager {
         this.idKey = idKey;
         this.resultsPerPage = resultsPerPage || 10;
     }
-    async addList(list, index) {
+    async addList(list, index, ascending) {
         if (!list.length) {
             return "List added to pager.";
         }
         if (!index) {
             index = this.idKey;
         }
+        ascending = typeof ascending === 'boolean' ? ascending : true;
+        index = (ascending ? '+' : '-') + index;
         if (!this._maps?.[index]) {
             this._maps[index] = [];
         }
@@ -29,10 +31,12 @@ export default class Pager {
         }
         return "List added to pager.";
     }
-    async getPage(page, index) {
+    async getPage(page, index, ascending) {
         if (!index) {
             index = this.idKey;
         }
+        ascending = typeof ascending === 'boolean' ? ascending : true;
+        index = (ascending ? '+' : '-') + index;
         let startIndex = (page - 1) * this.resultsPerPage;
         let result = this._maps[index].slice(startIndex, startIndex + this.resultsPerPage);
         return {
