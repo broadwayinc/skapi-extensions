@@ -1,5 +1,4 @@
 import { Skapi, SkapiError } from 'skapi-js';
-import { reactive } from 'vue';
 class Admin extends Skapi {
     constructor(state) {
         super('us31zettahertzesskpi', 'skapi', { autoLogin: window.localStorage.getItem('forgetme') === 'false' });
@@ -96,7 +95,7 @@ class Admin extends Skapi {
             this.state.services = serviceList;
         }
         let serviceArray = this.serviceMap.map(item => this.state.services[item]);
-        return reactive(serviceArray);
+        return serviceArray;
     }
     async createService(params) {
         await this.require(['admin', 'verification']);
