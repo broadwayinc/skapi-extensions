@@ -70,7 +70,7 @@
             
             let tdEdit = document.createElement('td');
             let editButton = document.createElement('button')
-            editButton.innerText = "Change Last to 'Agadss'";
+            editButton.innerText = "Change Index to 'Boom' and First to Agadss";
             editButton.addEventListener('click',async () => {
                 item = {...item, first_name: 'Agadss', index: { value: 'Boom'}}
                 let res = await pager.editItems([item]);
@@ -110,7 +110,7 @@
             hash |= 0;
         }
 
-        await pager.insertItems([{ first_name: userNameEl.value, user_id: Date.now() }])
+        await pager.insertItems([{ first_name: userNameEl.value, index: { value: userNameEl.value }, user_id: Date.now() }])
         getPage(params, currentPage);
     });
 </script>
