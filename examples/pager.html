@@ -36,79 +36,81 @@
 
 <script type="module">
     import Pager from '/js/pager.js';
-
+    import users from '/mock/user.js';
+    
     const url = new URL(window.location.href);
     const params = new URLSearchParams(url.search);
     let service_id = params.get('service-id');
+    let currentPage = 1;
+    const definedList = users.index_value.asc;
 
-    let skapi = new Skapi('us31zettahertzesskpi', 'skapi');
-    skapi.getProfile().then(async profile => {
-        let currentPage = 1;
+    const pager = new Pager({ id: 'user_id', sortBy: 'index.value' });
+    let pageCount = pager.addList({ list: definedList.slice(0,50), endOfList: false });
+    pageCount = pager.addList({ list: definedList.slice(-50), endOfList: true });
+    if (pageCount) {
+        getPage(params, currentPage);
+    }
 
-        if (profile.email) {
-            const pager = new Pager({ id: 'user_id' });
-            let params = {
-                service: 'us31ZD3hmNFitkvRQqJm',
-                searchFor: 'timestamp',
-                condition: '>=',
-                value: 0
-            };
-            let users = await skapi.getUsers(params);
-            let pageCount = pager.addList(params, users.list);
-            if (pageCount) {
-                getPage(params, currentPage);
-            }
+    function getPage(params, i) {
+        tableEl.innerHTML = '';
+        let page = pager.getPage(i);
+        page.list.forEach(item => {
+            let tr = document.createElement('tr');
+            let deleteBtn = document.createElement('button');
+            deleteBtn.innerText = 'Delete';
+            deleteBtn.addEventListener('click', async () => {
+                let res = await pager.delete([item.user_id])
+                getPage(params, i)
+            })
 
-            function getPage(params, i) {
-                tableEl.innerHTML = '';
-                let page = pager.getPage(params, i);
-                page.list.forEach(item => {
-                    let tr = document.createElement('tr');
-                    let deleteBtn = document.createElement('button');
-                    deleteBtn.innerText = 'Delete';
-                    deleteBtn.addEventListener('click', async () => {
-                        let res = await pager.delete([item.user_id])
-                        getPage(params, i)
-                    })
+            let td = document.createElement('td');
+            td.append(deleteBtn)
+            let tdName = document.createElement('td');
+            tdName.innerText = item.index.value + ": " + item.first_name + " " + item.last_name;
+            
+            let tdEdit = document.createElement('td');
+            let editButton = document.createElement('button')
+            editButton.innerText = "Change Last to 'Agadss'";
+            editButton.addEventListener('click',async () => {
+                item = {...item, first_name: 'Agadss', index: { value: 'Boom'}}
+                let res = await pager.editItems([item]);
+                getPage(params, i)
+            })
+            tdEdit.appendChild(editButton)
 
-                    let td = document.createElement('td');
-                    td.append(deleteBtn)
-                    let tdName = document.createElement('td');
-                    tdName.innerText = item.name;
-                    tr.append(td);
-                    tr.append(tdName);
+            tr.append(td);
+            tr.append(tdName);
+            tr.append(tdEdit);
 
-                    tableEl.appendChild(tr)
+            tableEl.appendChild(tr)
+        });
+        createPageButtons(page.maxPage);
+
+        function createPageButtons(maxPage) {
+            pagerEl.innerHTML = '';
+            for (let i = 1; i <= maxPage; i++) {
+                let btn = document.createElement('button')
+                btn.innerText = i;
+                btn.addEventListener('click', () => {
+                    currentPage = i;
+                    getPage(params, i);
                 });
-                createPageButtons(page.maxPage);
-
-                function createPageButtons(maxPage) {
-                    pagerEl.innerHTML = '';
-                    for (let i = 1; i <= maxPage; i++) {
-                        let btn = document.createElement('button')
-                        btn.innerText = i;
-                        btn.addEventListener('click', () => {
-                            currentPage = i;
-                            getPage(params, i);
-                        });
-                        pagerEl.appendChild(btn);
-                    }
-                }
-
+                pagerEl.appendChild(btn);
             }
-
-            addUserBtn.addEventListener('click', () => {
-                let hash = 0;
-                let str = userNameEl.value;
-                for (let i = 0; i < str.length; i++) {
-                    const char = str.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + char;
-                    hash |= 0;
-                }
-
-                pager.insertItem(params, {name: userNameEl.value, user_id: hash >>> 0})
-                getPage(params, currentPage);
-            });
         }
+
+    }
+
+    addUserBtn.addEventListener('click', async () => {
+        let hash = 0;
+        let str = userNameEl.value;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash |= 0;
+        }
+
+        await pager.insertItems([{ first_name: userNameEl.value, user_id: Date.now() }])
+        getPage(params, currentPage);
     });
 </script>
