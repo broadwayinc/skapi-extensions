@@ -16,7 +16,9 @@
 </form>
 
 <h1>Users</h1>
-<input type="text" placeholder="name" id="userNameEl" />
+<p>Clicking on update value will update the user with the current input values</p>
+<input type="text" placeholder="First Name" id="firstNameEl" />
+<input type="text" placeholder="Last Name" id="lastNameEl" />
 <button id="addUserBtn">Add User</button>
 <table id="tableEl">
 
@@ -70,9 +72,9 @@
             
             let tdEdit = document.createElement('td');
             let editButton = document.createElement('button')
-            editButton.innerText = "Change Index to 'Boom' and First to Agadss";
+            editButton.innerText = "Update User with Input Values";
             editButton.addEventListener('click',async () => {
-                item = {...item, first_name: 'Agadss', index: { value: 'Boom'}}
+                item = {...item, first_name: firstNameEl.value, last_name: lastNameEl.value, index: { value: lastNameEl.value }}
                 let res = await pager.editItems([item]);
                 getPage(params, i)
             })
@@ -103,14 +105,15 @@
 
     addUserBtn.addEventListener('click', async () => {
         let hash = 0;
-        let str = userNameEl.value;
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
+        let firstName = firstNameEl.value;
+        let lastName = lastNameEl.value
+        for (let i = 0; i < firstName.length; i++) {
+            const char = firstName.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
             hash |= 0;
         }
 
-        await pager.insertItems([{ first_name: userNameEl.value, index: { value: userNameEl.value }, user_id: Date.now() }])
+        await pager.insertItems([{ first_name: firstName, last_name: lastName, index: { value: lastName }, user_id: Date.now() }])
         getPage(params, currentPage);
     });
 </script>
