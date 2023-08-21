@@ -64,12 +64,21 @@ export default class Pager {
             const item = items[i];
             const currentItem = this._list.items[item[this.id]];
             
-            if (getSortByValue(currentItem, this._sortBy) !== getSortByValue(item, this._sortBy)) {
+            let itemSortValue;
+
+            try {
+                itemSortValue = getSortByValue(item, this._sortBy);
+
+                if (getSortByValue(currentItem, this._sortBy) !== itemSortValue) {  
+                    await this.insertItems([item]);
+                }
+    
+                this._list.items[item[this.id]] = item;
+            } catch(e) {
                 await this.delete([item[this.id]]);
-                await this.insertItems([item]);
             }
 
-            this._list.items[item[this.id]] = item;
+           
         }
 
         function getSortByValue(obj: { [key: string]: any }, path: string) {
@@ -80,7 +89,7 @@ export default class Pager {
                 if (currentObj.hasOwnProperty(prop)) {
                     currentObj = currentObj[prop];
                 } else {
-                    return undefined;
+                    throw 'Sortby value is undefined'
                 }
             }
 
