@@ -75,9 +75,6 @@
             editButton.innerText = "Update User with Input Values";
             editButton.addEventListener('click',async () => {
                 item = {...item, first_name: firstNameEl.value, last_name: lastNameEl.value, index: { value: lastNameEl.value }}
-                if(!item.index.value.lastName) {
-                    delete item.index
-                }
                 let res = await pager.editItems([item]);
                 getPage(params, i)
             })
