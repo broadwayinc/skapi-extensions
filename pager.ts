@@ -45,6 +45,8 @@ export default class Pager {
     }): {
         pages: number
     } {
+        this._list.endOfList = params.endOfList;
+
         let newItems = {};
 
         params.list.forEach(item => {
