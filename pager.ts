@@ -59,47 +59,49 @@ export default class Pager {
         }
     }
 
+    getSortByValue(obj: { [key: string]: any }): any {
+        const properties = this._sortBy.split('.');
+        let currentObj = obj;
+
+        for (let prop of properties) {
+            if (currentObj.hasOwnProperty(prop) && currentObj[prop] !== '') {
+                currentObj = currentObj[prop];
+            } else {
+                currentObj = null;
+                break;
+            }
+        }
+
+        return currentObj;
+    }
+
     async editItems(items: { [key: string]: any }[]): Promise<"Edit Saved"> {
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
             const currentItem = this._list.items[item[this.id]];
-            
-            let itemSortValue;
-
-            try {
-                itemSortValue = getSortByValue(item, this._sortBy);
-
-                if (getSortByValue(currentItem, this._sortBy) !== itemSortValue) {  
+            let sortByValue = this.getSortByValue(item);
+            if (sortByValue !== null) {
+                if (this.getSortByValue(currentItem) !== sortByValue) {
+                    await this.delete([item[this.id]]);
                     await this.insertItems([item]);
                 }
-    
+
                 this._list.items[item[this.id]] = item;
-            } catch(e) {
+            } else {
                 await this.delete([item[this.id]]);
             }
-
-           
-        }
-
-        function getSortByValue(obj: { [key: string]: any }, path: string) {
-            const properties = path.split('.');
-            let currentObj = obj;
-
-            for (let prop of properties) {
-                if (currentObj.hasOwnProperty(prop)) {
-                    currentObj = currentObj[prop];
-                } else {
-                    throw 'Sortby value is undefined'
-                }
-            }
-
-            return currentObj;
         }
 
         return "Edit Saved";
     }
 
     async insertItems(items: { [key: string]: any }[]): Promise<"Insert Successful"> {
+        for (let i = 0; i < items.length; i++) {
+            if (this.getSortByValue(items[i]) === null) {
+                return;
+            }
+        }
+
         worker.postMessage({
             method: 'insert',
             list: this._list,
