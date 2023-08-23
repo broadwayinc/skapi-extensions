@@ -61,10 +61,11 @@ self.addEventListener('message', (event) => {
             let currentObj = obj;
 
             for (let prop of properties) {
-                if (currentObj.hasOwnProperty(prop)) {
+                if (currentObj.hasOwnProperty(prop) && currentObj[prop] !== '') {
                     currentObj = currentObj[prop];
                 } else {
-                    return undefined; // or throw an error if you prefer
+                    currentObj = null;
+                    break;
                 }
             }
 
