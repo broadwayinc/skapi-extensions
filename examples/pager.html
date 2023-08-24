@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<script src="https://cdn.jsdelivr.net/npm/skapi-js@latest/dist/skapi.js"></script>
+
+<form id="login" onsubmit="skapi.login(event, { response: u=>{ user=u; login.hidden=true; } })" hidden>
+    <input type="email" name="email" placeholder="Email" />
+    <input type="password" name="password" placeholder="Password" />
+    <input type="submit" value="Login" />
+</form>
+
+<form id="setId" method="get" hidden>
+    <label>
+        Service ID:
+        <input type="text" name='service-id'>
+    </label>
+    <input type="submit">
+</form>
+
+<h1>Users</h1>
+<p>Clicking on update value will update the user with the current input values</p>
+<input type="text" placeholder="First Name" id="firstNameEl" />
+<input type="text" placeholder="Last Name" id="lastNameEl" />
+<button id="addUserBtn">Add User</button>
+<table id="tableEl">
+
+</table>
+<div id="pagerEl">
+
+</div>
+<style>
+    #files>div {
+        cursor: pointer;
+        background-color: black;
+        color: greenyellow;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+    }
+</style>
+
+<script type="module">
+    import Pager from '/js/pager.js';
+    import users from '/mock/user.js';
+    
+    const url = new URL(window.location.href);
+    const params = new URLSearchParams(url.search);
+    let service_id = params.get('service-id');
+    let currentPage = 1;
+    const definedList = users.index_value.asc;
+
+    const pager = new Pager({ id: 'user_id', sortBy: 'index.value' });
+    let pageCount = pager.addList({ list: definedList.slice(0,50), endOfList: false });
+    pageCount = pager.addList({ list: definedList.slice(-50), endOfList: true });
+    if (pageCount) {
+        getPage(params, currentPage);
+    }
+
+    function getPage(params, i) {
+        tableEl.innerHTML = '';
+        let page = pager.getPage(i);
+        page.list.forEach(item => {
+            let tr = document.createElement('tr');
+            let deleteBtn = document.createElement('button');
+            deleteBtn.innerText = 'Delete';
+            deleteBtn.addEventListener('click', async () => {
+                let res = await pager.delete([item.user_id])
+                getPage(params, i)
+            })
+
+            let td = document.createElement('td');
+            td.append(deleteBtn)
+            let tdName = document.createElement('td');
+            tdName.innerText = item.index.value + ": " + item.first_name + " " + item.last_name;
+            
+            let tdEdit = document.createElement('td');
+            let editButton = document.createElement('button')
+            editButton.innerText = "Update User with Input Values";
+            editButton.addEventListener('click',async () => {
+                item = {...item, first_name: firstNameEl.value, last_name: lastNameEl.value, index: { value: lastNameEl.value }}
+                let res = await pager.editItems([item]);
+                getPage(params, i)
+            })
+            tdEdit.appendChild(editButton)
+
+            tr.append(td);
+            tr.append(tdName);
+            tr.append(tdEdit);
+
+            tableEl.appendChild(tr)
+        });
+        createPageButtons(page.maxPage);
+
+        function createPageButtons(maxPage) {
+            pagerEl.innerHTML = '';
+            for (let i = 1; i <= maxPage; i++) {
+                let btn = document.createElement('button')
+                btn.innerText = i;
+                btn.addEventListener('click', () => {
+                    currentPage = i;
+                    getPage(params, i);
+                });
+                pagerEl.appendChild(btn);
+            }
+        }
+
+    }
+
+    addUserBtn.addEventListener('click', async () => {
+        let hash = 0;
+        let firstName = firstNameEl.value;
+        let lastName = lastNameEl.value
+        for (let i = 0; i < firstName.length; i++) {
+            const char = firstName.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash |= 0;
+        }
+
+        await pager.insertItems([{ first_name: firstName, last_name: lastName, index: { value: lastName }, user_id: Date.now() }])
+        getPage(params, currentPage);
+    });
+</script>

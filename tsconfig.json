@@ -1,7 +1,6 @@
 {
     "files": [
-      "dir.ts",
-      "_pager.ts"
+      "dir.ts", "admin.ts", "pager.ts"
     ],
     "include": ["*.d.ts"],
     "compilerOptions": {
@@ -103,5 +102,5 @@
       /* Completeness */
       // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
       "skipLibCheck": true /* Skip type checking all .d.ts files. */
-    }
+    },
   }
