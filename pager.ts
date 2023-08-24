@@ -1,4 +1,4 @@
-const worker = new Worker('./pager_worker.js');
+const worker = new Worker('/skapi-extensions/js/pager_worker.js');
 
 export default class Pager {
     sortBy: string;

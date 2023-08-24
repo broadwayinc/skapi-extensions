@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc; cp -r js examples/; cp -r js/pager_worker.js examples/pager_worker.js",
+    "build": "npx tsc; cp -r js examples/skapi-extensions",
     "build:win": "npx tsc && npx webpack",
     "dev": "(cd examples && node server.js)"
   },

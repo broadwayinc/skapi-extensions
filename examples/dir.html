@@ -30,7 +30,7 @@
 </style>
 
 <script type="module">
-    import Dir from '/js/dir.js';
+    import Dir from '/skapi-extensions/js/dir.js';
 
     let skapi = new Skapi('us31zettahertzesskpi', 'skapi');
 
@@ -96,7 +96,6 @@
                 let service_list = await skapi.request('get-services', {service_id}, {
                     auth: true
                 });
-                console.log(service_list)
                 for (let region in service_list) {
                     for (let service of service_list[region]) {
                         console.log(service)
