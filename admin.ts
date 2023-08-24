@@ -31,7 +31,7 @@ export default class Admin extends Skapi {
     };
 
     constructor(state) {
-        super('us31zettahertzesskpi', 'skapi', { autoLogin: window.localStorage.getItem('forgetme') === 'false' });
+        super('us31zettahertzesskpi', 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'false' });
         this.state = state;
 
         if (!this.state.connection) this.state.connection = null;
@@ -51,13 +51,13 @@ export default class Admin extends Skapi {
             email: string;
             password: string;
         },
-        option?: FormSubmitCallback & { forgetMe?: boolean }
+        option?: FormSubmitCallback & { remember?: boolean }
     ): Promise<UserAttributes & UserProfile> {
 
-        if (option?.forgetMe) {
-            window.localStorage.setItem('forgetme', 'true');
+        if (option?.remember) {
+            window.localStorage.setItem('remember', 'true');
         } else {
-            window.localStorage.setItem('forgetme', 'false');
+            window.localStorage.setItem('remember', 'false');
         }
 
         let login = await this.login(form, option);
