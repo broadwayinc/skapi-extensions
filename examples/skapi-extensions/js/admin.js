@@ -1,7 +1,7 @@
 import { Skapi, SkapiError } from 'skapi-js';
 export default class Admin extends Skapi {
     constructor(state) {
-        super('us31zettahertzesskpi', 'skapi', { autoLogin: window.localStorage.getItem('forgetme') === 'false' });
+        super('us31zettahertzesskpi', 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'false' });
         this.default_templates = {
             template_verification: {
                 sms: '[${service_name}] Verification code: ${code}',
@@ -32,11 +32,11 @@ export default class Admin extends Skapi {
         });
     }
     async adminLogin(form, option) {
-        if (option?.forgetMe) {
-            window.localStorage.setItem('forgetme', 'true');
+        if (option?.remember) {
+            window.localStorage.setItem('remember', 'true');
         }
         else {
-            window.localStorage.setItem('forgetme', 'false');
+            window.localStorage.setItem('remember', 'false');
         }
         let login = await this.login(form, option);
         this.state.user = login;
