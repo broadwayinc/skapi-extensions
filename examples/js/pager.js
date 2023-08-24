@@ -1,77 +1,87 @@
+const worker = new Worker('./pager_worker.js');
 export default class Pager {
-    constructor(options, list) {
-        this.id = options.id;
-        this.rpp = options.resultsPerPage ? options.resultsPerPage : 10;
-        if (list)
-            this._list = list;
-        else
-            this._list = {
-                maps: {},
-                items: {}
-            };
+    constructor(options) {
+        this.order = 'asc';
+        this.map = [];
+        this.list = {};
+        this.resultsPerPage = 10;
+        let { id, sortBy, order = 'asc', resultsPerPage = 10 } = options;
+        if (!id || typeof id !== 'string') {
+            throw 'id is required';
+        }
+        this.id = id;
+        this.sortBy = sortBy || id;
+        this.order = order;
+        this.resultsPerPage = resultsPerPage;
     }
-    sohash(params) {
-        let str = JSON.stringify(params);
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash |= 0;
-        }
-        return hash >>> 0;
-    }
-    addList(params, list) {
-        let hash = this.sohash(params);
-        let newItems = {};
-        let newMap = [];
-        list.forEach(item => {
-            newItems[item[this.id]] = item;
-            newMap.push(item[this.id]);
-        });
-        this._list.items = {
-            ...this._list.items,
-            ...newItems
-        };
-        if (this._list.maps[hash]) {
-            this._list.maps[hash] = [
-                ...this._list.maps[hash],
-                ...newMap
-            ];
-        }
-        else {
-            this._list.maps[hash] = newMap;
-        }
+    getPage(page) {
+        let startIndex = (page - 1) * this.resultsPerPage;
+        let result = this.map.slice(startIndex, startIndex + this.resultsPerPage);
         return {
-            pages: Math.ceil(this._list.maps[hash].length / this.rpp)
+            list: result.map((target) => this.list[target.split('􏿿')[1]]),
+            maxPage: Math.ceil(this.map.length / this.resultsPerPage)
         };
     }
-    insertItem(params, item) {
-        let hash = this.sohash(params);
-        this._list.items[item[this.id]] = item;
-        this._list.maps[hash].push(item[this.id]);
-    }
-    getPage(params, page) {
-        let hash = this.sohash(params);
-        let startIndex = (page - 1) * this.rpp;
-        let result = this._list.maps[hash].slice(startIndex, startIndex + this.rpp);
-        return {
-            list: result.map((item) => this._list.items[item]),
-            maxPage: Math.ceil(this._list.maps[hash].length / this.rpp)
-        };
-    }
-    async delete(ids) {
-        const worker = new Worker('./js/worker.js');
+    insertItems(items, options) {
+        let { withinRange = false } = options || {};
         worker.postMessage({
-            list: this._list,
-            index: ids
+            method: 'insert',
+            list: this.list,
+            map: this.map,
+            id: this.id,
+            sortBy: this.sortBy,
+            order: this.order,
+            items: items,
+            withinRange: withinRange
         });
-        let workerResult = new Promise((res) => {
+        for (let item of items) {
+            this.list[item[this.id]] = item;
+        }
+        return new Promise((res) => {
             worker.onmessage = (event) => {
-                this._list.items = event.data.items;
-                this._list.maps = event.data.maps;
-                res("Deleted");
+                this.map = event.data;
+                res("Insert Successful");
             };
         });
-        return await workerResult;
+    }
+    editItem(item, options) {
+        let { withinRange = false } = options || {};
+        worker.postMessage({
+            method: 'edit',
+            list: this.list,
+            map: this.map,
+            id: this.id,
+            sortBy: this.sortBy,
+            order: this.order,
+            items: [item],
+            withinRange: withinRange
+        });
+        return new Promise((res) => {
+            worker.onmessage = (event) => {
+                if (event.data) {
+                    this.map = event.data;
+                }
+                Object.assign(this.list[item[this.id]], item);
+                res("Edit Saved");
+            };
+        });
+    }
+    deleteItem(id) {
+        worker.postMessage({
+            method: 'delete',
+            list: this.list,
+            map: this.map,
+            id: this.id,
+            sortBy: this.sortBy,
+            order: this.order,
+            items: [this.list[id]]
+        });
+        return new Promise((res) => {
+            worker.onmessage = (event) => {
+                this.map = event.data;
+                delete this.list[id];
+                res("Item Deleted");
+            };
+        });
     }
 }

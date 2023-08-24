@@ -2,6 +2,7 @@
 
 git clone to skapi.com project
 
+#### import example
 ```
 import Dir from 'skapi-extensions/js/dir.js';
 ```
