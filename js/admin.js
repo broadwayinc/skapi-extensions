@@ -1,5 +1,5 @@
 import { Skapi, SkapiError } from 'skapi-js';
-class Admin extends Skapi {
+export default class Admin extends Skapi {
     constructor(state) {
         super('us31zettahertzesskpi', 'skapi', { autoLogin: window.localStorage.getItem('forgetme') === 'false' });
         this.default_templates = {
@@ -1854,4 +1854,3 @@ class Admin extends Skapi {
         return true;
     }
 }
-export { Admin };

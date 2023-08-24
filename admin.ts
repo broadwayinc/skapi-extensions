@@ -1,6 +1,6 @@
 import { Skapi, SkapiError } from 'skapi-js';
 
-class Admin extends Skapi {
+export default class Admin extends Skapi {
     state: {
         user: UserAttributes & UserProfile,
         connection: Connection,
@@ -146,7 +146,6 @@ class Admin extends Skapi {
         api_key: string;
     }): Promise<Service> {
         await this.require(['admin', 'verification']);
-
 
         const countries = {
             "AD": {
@@ -1662,7 +1661,8 @@ class Admin extends Skapi {
 
         if (regions[currentLocale]) {
             res = currentLocale;
-        } else {
+        }
+        else {
             let difference = null;
             for (let region in regions) {
                 let distance = calculateDistance(countries[currentLocale], countries[region]);
@@ -1688,7 +1688,6 @@ class Admin extends Skapi {
         }
 
         let serviceRegion = regions[res];
-
         let service = await this.request('register-service', Object.assign({ execute: 'create' }, { ...params, region: serviceRegion }), { auth: true });
 
         for (let t in this.default_templates) {
@@ -1759,7 +1758,6 @@ class Admin extends Skapi {
         }
 
         let { index, service } = this.fetchService(serviceId);
-
         let hasDiff = false;
 
         Object.keys(params).forEach((p) => {
@@ -2015,5 +2013,3 @@ class Admin extends Skapi {
         return true;
     }
 }
-
-export { Admin }
