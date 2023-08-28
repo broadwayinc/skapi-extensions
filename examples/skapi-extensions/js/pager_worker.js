@@ -15,7 +15,7 @@ function getIndexValue(obj, path) {
         // for precision, stringify number with 16 digits
         return obj.toString().padStart(16, '0');
     }
-    
+
     return obj.toString();
 }
 
