@@ -10,6 +10,12 @@ function getIndexValue(obj, path) {
         }
     }
 
+    if (typeof obj === 'number') {
+        // 4503599627370496
+        // for precision, stringify number with 16 digits
+        return obj.toString().padStart(16, '0');
+    }
+
     return obj.toString();
 }
 
