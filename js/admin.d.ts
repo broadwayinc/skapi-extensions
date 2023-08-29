@@ -4,7 +4,7 @@ export default class Admin extends Skapi {
         [serviceId: string]: Service;
     };
     serviceMap: any[];
-    constructor(service: string, owner: string);
+    constructor(host: string);
     adminLogin(form: {
         email: string;
         password: string;

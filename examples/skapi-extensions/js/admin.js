@@ -7,8 +7,11 @@ var Required;
     Required[Required["ALL"] = 2] = "ALL";
 })(Required || (Required = {}));
 export default class Admin extends Skapi {
-    constructor(service, owner) {
-        super(service, owner, { autoLogin: window.localStorage.getItem('remember') === 'true' });
+    constructor(host) {
+        if (!host) {
+            throw 'ask Baksa for host id';
+        }
+        super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' });
         this.serviceMap = [];
     }
     async adminLogin(form, option) {

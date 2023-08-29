@@ -9,8 +9,12 @@ export default class Admin extends Skapi {
     }
     serviceMap = [];
 
-    constructor(service: string, owner: string) {
-        super(service, owner, { autoLogin: window.localStorage.getItem('remember') === 'true' });
+    constructor(host: string) {
+        if(!host) {
+            throw 'ask Baksa for host id';
+        }
+        
+        super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' });
     }
 
     async adminLogin(
