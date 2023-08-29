@@ -39,8 +39,9 @@ export default class Admin extends Skapi {
         subdomain: string;
     }): Promise<Service>;
     deleteSubdomain(serviceId: string, cb: (service: Service) => void): Promise<Service>;
-    private subdomainDeleteCallback;
-    refreshCDN(serviceId: string): Promise<'IS_QUEUED' | 'IN_QUEUE' | 'IN_PROCESS'>;
+    refreshCDN(serviceId: string, params?: {
+        checkStatus: boolean | ((status: 'IS_QUEUED' | 'IN_QUEUE' | 'COMPLETE' | 'IN_PROCESS') => void);
+    }): Promise<'IS_QUEUED' | 'IN_QUEUE' | 'COMPLETE' | 'IN_PROCESS'>;
     set404(params: {
         serviceId: string;
         path: string;

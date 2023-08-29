@@ -203,28 +203,29 @@ export default class Admin extends Skapi {
         });
         service.subdomain = '*' + service.subdomain;
         if (typeof cb === 'function') {
-            this.subdomainDeleteCallback(serviceId, cb);
+            let callbackInterval = (serviceId, cb, time = 1000) => {
+                if (this.services[serviceId]?.subdomain && this.services[serviceId].subdomain?.[0] === '*') {
+                    this.getServices(serviceId).then(res => {
+                        if (res[0]?.subdomain) {
+                            return cb(this.services[serviceId]);
+                        }
+                        else {
+                            time *= 1.2;
+                            setTimeout(() => callbackInterval(serviceId, cb, time), time);
+                        }
+                    });
+                }
+                else {
+                    return cb(this.services[serviceId]);
+                }
+            };
+            callbackInterval(serviceId, cb);
         }
         return service;
     }
-    subdomainDeleteCallback(serviceId, cb, time = 1000) {
-        if (this.services[serviceId]?.subdomain && this.services[serviceId].subdomain?.[0] === '*') {
-            this.getServices(serviceId).then(res => {
-                if (res[0]?.subdomain) {
-                    return cb(this.services[serviceId]);
-                }
-                else {
-                    time *= 1.2;
-                    setTimeout(() => this.subdomainDeleteCallback(serviceId, cb, time), time);
-                }
-            });
-        }
-        else {
-            return cb(this.services[serviceId]);
-        }
-    }
-    async refreshCDN(serviceId) {
+    async refreshCDN(serviceId, params) {
         await this.require(Required.ADMIN);
+        let { checkStatus = false } = params || {};
         if (!serviceId)
             throw 'Service ID is required';
         let service = this.services[serviceId];
@@ -232,13 +233,17 @@ export default class Admin extends Skapi {
             throw 'subdomain does not exists.';
         }
         try {
-            await this.request('refresh-cdn', {
+            let res = await this.request('refresh-cdn', {
                 service: serviceId,
-                subdomain: service.subdomain
+                subdomain: service.subdomain,
+                exec: typeof checkStatus === 'boolean' && checkStatus ? 'status' : 'refresh'
             }, {
                 auth: true,
                 method: 'post'
             });
+            if (checkStatus === true) {
+                return res;
+            }
             return 'IS_QUEUED';
         }
         catch (err) {
@@ -249,6 +254,21 @@ export default class Admin extends Skapi {
                 return 'IN_PROCESS';
             }
             throw err;
+        }
+        finally {
+            if (typeof checkStatus === 'function') {
+                let callbackInterval = (serviceId, cb, time = 3000) => {
+                    setTimeout(() => {
+                        this.refreshCDN(serviceId, { checkStatus: cb }).then(res => {
+                            if (res === 'COMPLETE') {
+                                return cb(res);
+                            }
+                            callbackInterval(serviceId, cb, time);
+                        });
+                    }, time);
+                };
+                callbackInterval(serviceId, checkStatus);
+            }
         }
     }
     async set404(params) {
