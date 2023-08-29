@@ -74,5 +74,13 @@ export default class Admin extends Skapi {
         email: number;
         service: string;
     }>;
+    listHostDirectory(serviceId: string, params: {
+        dir: string;
+    }, fetchOptions: FetchOptions): Promise<DatabaseResponse<{
+        name: string;
+        type: 'file' | 'folder';
+        size?: number;
+        lastModified?: number;
+    }>>;
     private require;
 }

@@ -311,6 +311,17 @@ export default class Admin extends Skapi {
         await this.require(Required.ADMIN);
         return this.request('storage-info', { service: serviceId }, { auth: true });
     }
+    async listHostDirectory(serviceId, params, fetchOptions) {
+        this.require(Required.ADMIN);
+        if (!params?.dir) {
+            params.dir = '/';
+        }
+        return request.bind(this)('list-host-directory', Object.assign(params, { service: serviceId }), {
+            fetchOptions,
+            auth: true,
+            method: 'post'
+        });
+    }
     async require(access) {
         if (access === Required.ALL || access === Required.ADMIN) {
             if (await this.checkAdmin()) {
