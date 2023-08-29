@@ -1,29 +1,16 @@
-type FormSubmitCallback = {
-    response?(response: any): void;
-    onerror?(error: Error): void;
-}
+type UserProfile = {
+    service: string;
+    owner: 'skapi';
 
-type UserAttributes = {
-    /** User's name */
-    name?: string;
     /**
-     * User's E-Mail for signin.<br>
-     * 64 character max.<br>
-     * When E-Mail is changed, E-Mail verified state will be changed to false.<br>
-     * E-Mail is only visible to others when set to public.<br>
-     * E-Mail should be verified to set to public.
+     * User's E-Mail for signin.
+     * 64 character max.
+     * When E-Mail is changed, E-Mail verified state will be changed to false.
      * */
     email?: string;
     /** Additional string value that can be used freely. */
     misc?: string;
-};
-
-type UserProfile = {
-    /** Service id of the user account. */
-    service: string;
-    /** User ID of the service owner. */
-    owner?: 'skapi';
-    /** Access level of the user's account. */
+    /** Access level of the user's account. Will be used for distinguish paid accounts in the future.*/
     access_group?: number;
     /** User's ID. */
     user_id: string;
@@ -31,56 +18,35 @@ type UserProfile = {
     locale: string;
     /** Shows true when user has verified their E-Mail. */
     email_verified?: boolean;
-    /** Shows 'PASS' if the user's account signup was successful. 'MEMBER' if signup confirmation was successful. */
-    signup_ticket?: string;
     /** Timestamp of user signup time. */
     timestamp: number;
 };
 
-type Connection = {
-    /** User's locale */
-    locale: string;
-    /** Service owner's ID */
-    owner: string;
-    /** E-Mail address of the service owner */
-    email: string;
-    /** Service ID */
-    service: string;
-    /** Service region */
-    region: string;
-    /** 13 digits timestamp of the service creation */
-    timestamp: number;
-    /** Connected user's IP address */
-    ip: string;
-}
-
 type Service = {
+    /** Service id. */
+    service: string;
     /** Shows active state. 1 = active, 0 = disabled */
     active: number;
-    /** Custom api key to use for service owners custom api. */
-    api_key: string;
-    /** Service cors for connection. */
-    cors: string;
-    /** Locale in which service was created in 2 letter ISO country code ISO 3166-1 alpha-2 standard*/
-    created_locale: string;
-    /** Service owners E-Mail. */
-    email: string;
-    /** Number of users subscribed to service E-Mail. */
-    email_subscribers: number;
     /** Service group. 1 = free try out. 1 > paid users. */
     group: number;
     /** Service region */
     region: string;
     /** Service name. */
     name: string;
-    /** Host is always Skapi's service ID */
-    host: "us31zettahertzesskpi";
-    /** Number of newsletter subscribers. */
-    newsletter_subscribers: number;
-    /** Service id. */
-    service: string;
+    /** Service owners E-Mail. */
+    email: string;
+    /** Custom api key to use for service owners custom api. */
+    api_key: string;
     /** Subdomain name */
     subdomain?: string;
+    /** Service cors for connection. */
+    cors: string;
+    /** Locale in which service was created in 2 letter ISO country code ISO 3166-1 alpha-2 standard*/
+    created_locale: string;
+    /** Number of users subscribed to service E-Mail. */
+    email_subscribers: number;
+    /** Number of newsletter subscribers. */
+    newsletter_subscribers: number;
     /** Service owner can send email to the triggers to send newsletters, or change automated E-Mail templates. */
     email_triggers: {
         template_setters: {
@@ -89,29 +55,26 @@ type Service = {
             verification: string;
             welcome: string;
         }
-    }
-    /** E-Mail template for signup confirmation. This can be changed by trigger E-Mail. */
-    template_activation: {
-        html: string;
-        subject: string;
-    };
-    /** E-Mail template for verification code E-Mail. This can be changed by trigger E-Mail. */
-    template_verification: {
-        html: string;
-        subject: string;
-    };
-    /** E-Mail template for welcome E-Mail that user receives after signup process. This can be changed by trigger E-Mail. */
-    template_welcome: {
-        html: string;
-        subject: string;
     };
     /** Number of users in the service. */
     users: number;
-    /** 13 digit timestamp  */
+    /** 13 digit timestamp of when service was created */
     timestamp: number;
+    /** Host is always Skapi's service ID */
+    host: string;
 };
 
-type AccessType = 'admin' | 'verification';
+type FormSubmitCallback = {
+    response?(response: any): void;
+    onerror?(error: Error): void;
+    progress?: (e: {
+        status: 'upload' | 'download';
+        progress: number;
+        loaded: number;
+        total: number;
+        abort: () => void; // Aborts current data transfer. When abort is triggered during the FileList is on trasmit, it will continue to next file.
+    }) => void;
+}
 
 type FetchOptions = {
     /** Maximum number of records to fetch per call */
