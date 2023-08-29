@@ -339,7 +339,7 @@ export default class Admin extends Skapi {
         if (!params?.dir) {
             params.dir = '/';
         }
-        return request.bind(this)('list-host-directory', Object.assign(params, { service: serviceId }), {
+        return this.request('list-host-directory', Object.assign(params, { service: serviceId }), {
             fetchOptions,
             auth: true,
             method: 'post'
@@ -347,11 +347,13 @@ export default class Admin extends Skapi {
     }
     async require(access) {
         if (access === Required.ALL || access === Required.ADMIN) {
-            if (await this.checkAdmin()) {
+            let is_admin = await this.checkAdmin();
+            if (!is_admin) {
                 throw new SkapiError('No access. User is logged out.', { code: 'INVALID_REQUEST' });
             }
         }
         if (access === Required.ALL || access === Required.EMAIL_VERIFICATION) {
+            await this.__connection;
             if (!this.__user?.email_verified) {
                 throw new SkapiError('E-Mail verification is needed.', { code: 'INVALID_REQUEST' });
             }

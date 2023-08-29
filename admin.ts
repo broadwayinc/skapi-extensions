@@ -10,10 +10,10 @@ export default class Admin extends Skapi {
     serviceMap = [];
 
     constructor(host: string) {
-        if(!host) {
+        if (!host) {
             throw 'ask Baksa for host id';
         }
-        
+
         super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' });
     }
 
@@ -327,9 +327,9 @@ export default class Admin extends Skapi {
     async refreshCDN(
         serviceId: string,
         params?: {
-            checkStatus:
-            boolean | // when true, returns the status of the cdn refresh without running the cdn refresh
-                (status: 'IS_QUEUED' | 'IN_QUEUE' | 'COMPLETE' | 'IN_PROCESS') => void; // callbacks the cdn refresh status in 3 seconds interval
+            // when true, returns the status of the cdn refresh without running the cdn refresh
+            // if callback are given, calls for cdn refresh, then callbacks the cdn refresh status in 3 seconds interval
+            checkStatus: boolean | ((status: 'IS_QUEUED' | 'IN_QUEUE' | 'COMPLETE' | 'IN_PROCESS') => void);
         }
     ): Promise<
         'IS_QUEUED' | // new cdn refresh is queued
@@ -357,7 +357,7 @@ export default class Admin extends Skapi {
                 method: 'post'
             });
 
-            else if (checkStatus === true) {
+            if (checkStatus === true) {
                 return res;
             }
 
@@ -520,7 +520,7 @@ export default class Admin extends Skapi {
             params.dir = '/';
         }
 
-        return request.bind(this)('list-host-directory', Object.assign(params, { service: serviceId }), {
+        return this.request('list-host-directory', Object.assign(params, { service: serviceId }), {
             fetchOptions,
             auth: true,
             method: 'post'
@@ -529,12 +529,14 @@ export default class Admin extends Skapi {
 
     private async require(access: Required): Promise<void> {
         if (access === Required.ALL || access === Required.ADMIN) {
-            if (await this.checkAdmin()) {
+            let is_admin = await this.checkAdmin();
+            if (!is_admin) {
                 throw new SkapiError('No access. User is logged out.', { code: 'INVALID_REQUEST' });
             }
         }
 
         if (access === Required.ALL || access === Required.EMAIL_VERIFICATION) {
+            await this.__connection;
             if (!this.__user?.email_verified) {
                 throw new SkapiError('E-Mail verification is needed.', { code: 'INVALID_REQUEST' });
             }

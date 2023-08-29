@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "skapi-js": "^1.0.0-alpha.5",
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "skapi-js": "^1.0.0-alpha.6"
   }
 }
