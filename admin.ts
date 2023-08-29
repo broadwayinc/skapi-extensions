@@ -283,7 +283,7 @@ export default class Admin extends Skapi {
 
     async deleteSubdomain(
         serviceId: string,
-        cb: (service: Service) => void // callback when the subdomain is deleted
+        cb: (service: Service) => void // callback runs when the subdomain is deleted
     ): Promise<Service> {
         await this.require(Required.ADMIN);
 
@@ -299,34 +299,43 @@ export default class Admin extends Skapi {
 
         service.subdomain = '*' + service.subdomain;
         if (typeof cb === 'function') {
-            this.subdomainDeleteCallback(serviceId, cb);
+            let callbackInterval = (serviceId: string, cb: (service: Service) => void, time = 1000): void => {
+                if (this.services[serviceId]?.subdomain && this.services[serviceId].subdomain?.[0] === '*') {
+                    this.getServices(serviceId).then(res => {
+                        if (res[0]?.subdomain) {
+                            return cb(this.services[serviceId]);
+                        }
+                        else {
+                            time *= 1.2;
+                            setTimeout(() => callbackInterval(serviceId, cb, time), time);
+                        }
+                    });
+                }
+                else {
+                    return cb(this.services[serviceId]);
+                }
+            }
+            callbackInterval(serviceId, cb);
         }
         return service
     }
 
-    private subdomainDeleteCallback(serviceId: string, cb: (service: Service) => void, time = 1000): void {
-        if (this.services[serviceId]?.subdomain && this.services[serviceId].subdomain?.[0] === '*') {
-            this.getServices(serviceId).then(res => {
-                if (res[0]?.subdomain) {
-                    return cb(this.services[serviceId]);
-                }
-                else {
-                    time *= 1.2;
-                    setTimeout(() => this.subdomainDeleteCallback(serviceId, cb, time), time);
-                }
-            });
+    async refreshCDN(
+        serviceId: string,
+        params?: {
+            checkStatus:
+            boolean | // when true, returns the status of the cdn refresh without running the cdn refresh
+                (status: 'IS_QUEUED' | 'IN_QUEUE' | 'COMPLETE' | 'IN_PROCESS') => void; // callbacks the cdn refresh status in 3 seconds interval
         }
-        else {
-            return cb(this.services[serviceId]);
-        }
-    }
-
-    async refreshCDN(serviceId: string): Promise<
+    ): Promise<
         'IS_QUEUED' | // new cdn refresh is queued
         'IN_QUEUE' | // the previous cdn refresh is still in queue
+        'COMPLETE' | // only when checkStatus is true and the previous cdn refresh is complete
         'IN_PROCESS'// the cdn refresh is in process
     > {
         await this.require(Required.ADMIN);
+        let { checkStatus = false } = params || {};
+
         if (!serviceId) throw 'Service ID is required';
 
         let service = this.services[serviceId];
@@ -335,17 +344,23 @@ export default class Admin extends Skapi {
         }
 
         try {
-            await this.request('refresh-cdn', {
+            let res = await this.request('refresh-cdn', {
                 service: serviceId,
-                subdomain: service.subdomain
+                subdomain: service.subdomain,
+                exec: typeof checkStatus === 'boolean' && checkStatus ? 'status' : 'refresh'
             }, {
                 auth: true,
                 method: 'post'
             });
 
+            else if (checkStatus === true) {
+                return res;
+            }
+
             return 'IS_QUEUED'
 
-        } catch (err) {
+        }
+        catch (err) {
             if ((err as SkapiError).message === 'previous cdn refresh is still in queue.') {
                 return 'IN_QUEUE';
             }
@@ -354,6 +369,21 @@ export default class Admin extends Skapi {
             }
 
             throw err;
+        }
+        finally {
+            if (typeof checkStatus === 'function') {
+                let callbackInterval = (serviceId, cb, time = 3000) => {
+                    setTimeout(() => {
+                        this.refreshCDN(serviceId, { checkStatus: cb }).then(res => {
+                            if (res === 'COMPLETE') {
+                                return cb(res);
+                            }
+                            callbackInterval(serviceId, cb, time);
+                        });
+                    }, time);
+                }
+                callbackInterval(serviceId, checkStatus);
+            }
         }
     }
 
