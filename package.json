@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc; cp -r js examples/skapi-extensions",
+    "build": "npx tsc; cp countries.js js/; cp -r js examples/skapi-extensions",
     "build:win": "npx tsc && powershell Copy-Item -Path .\\js\\* -Destination .\\examples\\skapi-extensions\\js\\ -Recurse",
     "dev": "(cd examples && node server.js)"
   },
