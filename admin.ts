@@ -414,31 +414,42 @@ export default class Admin extends Skapi {
         }
     ): Promise<void> {
         await this.require(Required.ADMIN);
+        if (!params?.serviceId) {
+            throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
+        }
         return this.uploadFiles(formData, {
             service: params.serviceId,
             request: 'host',
-            progress: params.progress
+            progress: params?.progress
         })
     }
 
     async deleteHostFiles(
         params: {
             serviceId: string,
-            endpoints: string[]
+            paths: string[] // path without subdomain ex) folder/file.html
         }
-    ) {
+    ): Promise<string> {
         await this.require(Required.ADMIN);
-        let service = this.services[params.serviceId];
-
-        for (let i = 0; i < params.endpoints.length; i++) {
-            params.endpoints[i] = service.subdomain + '/' + params.endpoints[i];
+        if (!params?.serviceId) {
+            throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
+        }
+        if (!params?.paths) {
+            throw new SkapiError('"params.paths" is required.', { code: 'INVALID_PARAMETER' });
         }
 
-        return this.deleteFiles({
-            endpoints: params.endpoints,
+        let service = this.services[params.serviceId];
+        let pathsArr = [];
+
+        for (let i = 0; i < params.paths.length; i++) {
+            pathsArr.push(service.subdomain + '/' + params.paths[i]);
+        }
+
+        return this.request('del-files', {
             service: params.serviceId,
+            endpoints: pathsArr,
             storage: 'host'
-        });
+        }, { auth: true, method: 'post' });
     }
 
     async requestNewsletterSender(serviceId: string, params: { groupNum: number }): Promise<string> {
