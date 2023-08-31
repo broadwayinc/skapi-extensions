@@ -480,7 +480,7 @@ export default class Admin extends Skapi {
             subscriber: params.email
         };
 
-        return this.getSubscriptions(sub, fetchOptions, s => {
+        return (this.getSubscriptions(sub, fetchOptions, s => {
             let subSplit = s.sub.split('#');
             let subscription = {
                 email: subSplit[0],
@@ -488,7 +488,7 @@ export default class Admin extends Skapi {
                 timestamp: s.stmp
             };
             return subscription;
-        });
+        }) as any);
     }
 
     async deleteNewsletter(
