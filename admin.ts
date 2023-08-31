@@ -412,16 +412,16 @@ export default class Admin extends Skapi {
             serviceId: string;
             progress: (p: Progress) => void
         }
-    ): Promise<void> {
+    ): Promise<{ completed: File[]; failed: File[]; }> {
         await this.require(Required.ADMIN);
         if (!params?.serviceId) {
             throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
         }
-        return this.uploadFiles(formData, {
+        return this.uploadFiles(formData, ({
             service: params.serviceId,
             request: 'host',
             progress: params?.progress
-        })
+        } as any))
     }
 
     async deleteHostFiles(

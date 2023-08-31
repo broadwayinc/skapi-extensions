@@ -47,8 +47,8 @@ type Progress = {
     progress: number;
     loaded: number;
     total: number;
-    currentFile: File;
-    completed: File[];
-    failed: File[];
+    currentFile?: File;
+    completed?: File[];
+    failed?: File[];
     abort: () => void; // Aborts current data transfer. When abort is triggered during the FileList is on trasmit, it will continue to next file.
 }
