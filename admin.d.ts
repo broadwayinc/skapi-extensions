@@ -1,6 +1,6 @@
 type UserProfile = {
     service: string;
-    owner: 'skapi';
+    owner: string;
 
     /**
      * User's E-Mail for signin.
