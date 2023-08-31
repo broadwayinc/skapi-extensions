@@ -329,13 +329,13 @@ export default class Admin extends Skapi {
         params?: {
             // when true, returns the status of the cdn refresh without running the cdn refresh
             // if callback are given, calls for cdn refresh, then callbacks the cdn refresh status in 3 seconds interval
-            checkStatus: boolean | ((status: 'IS_QUEUED' | 'IN_QUEUE' | 'COMPLETE' | 'IN_PROCESS') => void);
+            checkStatus: boolean | ((status: 'IN_QUEUE' | 'COMPLETE' | 'IN_PROCESS') => void);
         }
     ): Promise<
         'IS_QUEUED' | // new cdn refresh is queued
         'IN_QUEUE' | // the previous cdn refresh is still in queue
         'COMPLETE' | // only when checkStatus is true and the previous cdn refresh is complete
-        'IN_PROCESS'// the cdn refresh is in process
+        'IN_PROCESS' // the cdn refresh is in process
     > {
         await this.require(Required.ADMIN);
         let { checkStatus = false } = params || {};
