@@ -40,7 +40,7 @@ export default class Admin extends Skapi {
     }): Promise<Service>;
     deleteSubdomain(serviceId: string, cb: (service: Service) => void): Promise<Service>;
     refreshCDN(serviceId: string, params?: {
-        checkStatus: boolean | ((status: 'IS_QUEUED' | 'IN_QUEUE' | 'COMPLETE' | 'IN_PROCESS') => void);
+        checkStatus: boolean | ((status: 'IN_QUEUE' | 'COMPLETE' | 'IN_PROCESS') => void);
     }): Promise<'IS_QUEUED' | 'IN_QUEUE' | 'COMPLETE' | 'IN_PROCESS'>;
     set404(params: {
         serviceId: string;
@@ -49,11 +49,14 @@ export default class Admin extends Skapi {
     uploadHostFiles(formData: FormData, params: {
         serviceId: string;
         progress: (p: Progress) => void;
-    }): Promise<void>;
+    }): Promise<{
+        completed: File[];
+        failed: File[];
+    }>;
     deleteHostFiles(params: {
         serviceId: string;
-        endpoints: string[];
-    }): Promise<any>;
+        paths: string[];
+    }): Promise<string>;
     requestNewsletterSender(serviceId: string, params: {
         groupNum: number;
     }): Promise<string>;

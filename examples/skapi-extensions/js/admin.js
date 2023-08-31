@@ -18,7 +18,7 @@ export default class Admin extends Skapi {
         let { remember = false } = option || {};
         window.localStorage.setItem('remember', remember.toString());
         delete option.remember;
-        return this.login(form, option);
+        return this.login(form);
     }
     async blockAccount(serviceId, params) {
         await this.require(Required.ADMIN);
@@ -285,23 +285,33 @@ export default class Admin extends Skapi {
     }
     async uploadHostFiles(formData, params) {
         await this.require(Required.ADMIN);
+        if (!params?.serviceId) {
+            throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
+        }
         return this.uploadFiles(formData, {
             service: params.serviceId,
             request: 'host',
-            progress: params.progress
+            progress: params?.progress
         });
     }
     async deleteHostFiles(params) {
         await this.require(Required.ADMIN);
-        let service = this.services[params.serviceId];
-        for (let i = 0; i < params.endpoints.length; i++) {
-            params.endpoints[i] = service.subdomain + '/' + params.endpoints[i];
+        if (!params?.serviceId) {
+            throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
         }
-        return this.deleteFiles({
-            endpoints: params.endpoints,
+        if (!params?.paths) {
+            throw new SkapiError('"params.paths" is required.', { code: 'INVALID_PARAMETER' });
+        }
+        let service = this.services[params.serviceId];
+        let pathsArr = [];
+        for (let i = 0; i < params.paths.length; i++) {
+            pathsArr.push(service.subdomain + '/' + params.paths[i]);
+        }
+        return this.request('del-files', {
             service: params.serviceId,
+            endpoints: pathsArr,
             storage: 'host'
-        });
+        }, { auth: true, method: 'post' });
     }
     async requestNewsletterSender(serviceId, params) {
         await this.require(Required.ALL);
