@@ -18,8 +18,6 @@ type UserProfile = {
     locale: string;
     /** Shows true when user has verified their E-Mail. */
     email_verified?: boolean;
-    /** Timestamp of user signup time. */
-    timestamp: number;
 };
 
 type Service = {

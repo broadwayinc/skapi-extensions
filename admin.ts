@@ -27,7 +27,7 @@ export default class Admin extends Skapi {
         let { remember = false } = option || {};
         window.localStorage.setItem('remember', remember.toString());
         delete option.remember;
-        return this.login(form, option);
+        return this.login(form);
     }
 
     async blockAccount(
