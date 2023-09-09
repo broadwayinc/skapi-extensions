@@ -248,6 +248,7 @@ export default class Admin extends Skapi {
         serviceId: string,
         params: {
             subdomain: string,
+            cb: (service: Service) => void // callback runs when the subdomain process is complete
         }
     ): Promise<Service> {
         await this.require(Required.ADMIN);
@@ -262,13 +263,10 @@ export default class Admin extends Skapi {
             'documentation'
         ];
 
-        let { subdomain = null } = params;
-        if (!subdomain) {
-            throw '"params.subdomain" is required';
-        }
-
+        let { subdomain = '' } = params;
         let service = this.services[serviceId];
-        if (params.subdomain.length < 4 || invalid.includes(subdomain)) {
+
+        if (subdomain && (params.subdomain.length < 4 || invalid.includes(subdomain))) {
             throw 'The subdomain has been taken.'
         }
 
@@ -276,37 +274,29 @@ export default class Admin extends Skapi {
             return service;
         }
 
-        await this.request('register-subdomain', { service: serviceId, subdomain, exec: 'register' }, {
+        if (subdomain && service.subdomain[0] === '*') {
+            throw 'Previous subdomain is in removal process.'
+        }
+        else if(subdomain && service.subdomain[0] === '+') {
+            throw `Previous subdomain is in transit to "${service.subdomain.slice(1)}".`
+        }
+
+        let resp = await this.request('register-subdomain', { service: serviceId, subdomain }, {
             auth: true,
             method: 'post'
         });
 
         service.subdomain = subdomain;
-        return service;
-    }
 
-    async deleteSubdomain(
-        serviceId: string,
-        cb: (service: Service) => void // callback runs when the subdomain is deleted
-    ): Promise<Service> {
-        await this.require(Required.ADMIN);
-
-        let service = this.services[serviceId];
-        if (!service?.subdomain || service.subdomain[0] === '*') {
-            return service;
+        if(typeof resp !== 'string') {
+            Object.assign(service, resp);
         }
-
-        await this.request('register-subdomain', { service: serviceId, subdomain: service.subdomain, exec: 'remove' }, {
-            auth: true,
-            method: 'post'
-        });
-
-        service.subdomain = '*' + service.subdomain;
-        if (typeof cb === 'function') {
+        
+        if (typeof params.cb === 'function') {
             let callbackInterval = (serviceId: string, cb: (service: Service) => void, time = 1000): void => {
-                if (this.services[serviceId]?.subdomain && this.services[serviceId].subdomain?.[0] === '*') {
+                if (this.services[serviceId]?.subdomain && this.services[serviceId].subdomain?.[0] === '+' && this.services[serviceId].subdomain?.[0] === '*') {
                     this.getServices(serviceId).then(res => {
-                        if (res[0]?.subdomain) {
+                        if (!res[0]?.subdomain || res[0]?.subdomain && res[0].subdomain[0] !== '+' && res[0].subdomain[0] !== '*') {
                             return cb(this.services[serviceId]);
                         }
                         else {
@@ -319,9 +309,10 @@ export default class Admin extends Skapi {
                     return cb(this.services[serviceId]);
                 }
             }
-            callbackInterval(serviceId, cb);
+            callbackInterval(serviceId, params.cb);
         }
-        return service
+
+        return service;
     }
 
     async refreshCDN(
@@ -378,7 +369,7 @@ export default class Admin extends Skapi {
             if (typeof checkStatus === 'function') {
                 let callbackInterval = (serviceId, cb, time = 3000) => {
                     setTimeout(() => {
-                        this.refreshCDN(serviceId, { checkStatus: cb }).then(res => {
+                        this.refreshCDN(serviceId, { checkStatus: true }).then(res => {
                             if (res === 'COMPLETE') {
                                 return cb(res);
                             }
