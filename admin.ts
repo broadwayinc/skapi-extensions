@@ -265,8 +265,11 @@ export default class Admin extends Skapi {
 
         let { subdomain = '' } = params;
         let service = this.services[serviceId];
+        if (!service) {
+            throw 'Service does not exists.';
+        }
 
-        if (subdomain && (params.subdomain.length < 4 || invalid.includes(subdomain))) {
+        if (subdomain && (subdomain.length < 4 || invalid.includes(subdomain))) {
             throw 'The subdomain has been taken.'
         }
 
@@ -274,11 +277,13 @@ export default class Admin extends Skapi {
             return service;
         }
 
-        if (subdomain && service.subdomain[0] === '*') {
-            throw 'Previous subdomain is in removal process.'
-        }
-        else if(subdomain && service.subdomain[0] === '+') {
-            throw `Previous subdomain is in transit to "${service.subdomain.slice(1)}".`
+        if (service?.subdomain) {
+            if (subdomain && service?.subdomain[0] === '*') {
+                throw 'Previous subdomain is in removal process.'
+            }
+            else if (subdomain && service?.subdomain[0] === '+') {
+                throw `Previous subdomain is in transit to "${service.subdomain.slice(1)}".`
+            }
         }
 
         let resp = await this.request('register-subdomain', { service: serviceId, subdomain }, {
@@ -288,10 +293,10 @@ export default class Admin extends Skapi {
 
         service.subdomain = subdomain;
 
-        if(typeof resp !== 'string') {
+        if (typeof resp !== 'string') {
             Object.assign(service, resp);
         }
-        
+
         if (typeof params.cb === 'function') {
             let callbackInterval = (serviceId: string, cb: (service: Service) => void, time = 1000): void => {
                 if (this.services[serviceId]?.subdomain && this.services[serviceId].subdomain?.[0] === '+' && this.services[serviceId].subdomain?.[0] === '*') {
