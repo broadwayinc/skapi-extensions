@@ -6,7 +6,7 @@ enum Required { ADMIN, EMAIL_VERIFICATION, ALL }
 export default class Admin extends Skapi {
     services: {
         [serviceId: string]: Service;
-    }
+    } = {};
     serviceMap = [];
 
     constructor(host: string) {
