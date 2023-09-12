@@ -37,8 +37,8 @@ export default class Admin extends Skapi {
     deleteService(serviceId: string): Promise<"the service has been successfully deleted.">;
     registerSubdomain(serviceId: string, params: {
         subdomain: string;
+        cb: (service: Service) => void;
     }): Promise<Service>;
-    deleteSubdomain(serviceId: string, cb: (service: Service) => void): Promise<Service>;
     refreshCDN(serviceId: string, params?: {
         checkStatus: boolean | ((status: 'IN_QUEUE' | 'COMPLETE' | 'IN_PROCESS') => void);
     }): Promise<'IS_QUEUED' | 'IN_QUEUE' | 'COMPLETE' | 'IN_PROCESS'>;
@@ -60,14 +60,6 @@ export default class Admin extends Skapi {
     requestNewsletterSender(serviceId: string, params: {
         groupNum: number;
     }): Promise<string>;
-    getNewsletterSubscribers(params: {
-        serviceId: string;
-        email?: string;
-    }, fetchOptions?: FetchOptions): Promise<DatabaseResponse<{
-        email: string;
-        locale: string;
-        timestamp: number;
-    }>>;
     deleteNewsletter(params: {
         message_id: string;
         group: number;

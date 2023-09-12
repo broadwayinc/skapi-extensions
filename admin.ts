@@ -453,40 +453,6 @@ export default class Admin extends Skapi {
         return this.request('request-newsletter-sender', { service: serviceId, group_numb: params.groupNum }, { auth: true });
     }
 
-    async getNewsletterSubscribers(
-        params: {
-            serviceId: string;
-            email?: string;
-        },
-        fetchOptions?: FetchOptions
-    ): Promise<
-        DatabaseResponse<{
-            email: string;
-            locale: string;
-            timestamp: number;
-        }>
-    > {
-        await this.require(Required.ALL);
-
-        let sub = {
-            service: params.serviceId,
-            subscription: params.serviceId,
-            group: 0,
-            emailSubscription: true,
-            subscriber: params.email
-        };
-
-        return (this.getSubscriptions(sub, fetchOptions, s => {
-            let subSplit = s.sub.split('#');
-            let subscription = {
-                email: subSplit[0],
-                locale: s.loc,
-                timestamp: s.stmp
-            };
-            return subscription;
-        }) as any);
-    }
-
     async deleteNewsletter(
         params: {
             message_id: string;

@@ -12,6 +12,7 @@ export default class Admin extends Skapi {
             throw 'ask Baksa for host id';
         }
         super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' });
+        this.services = {};
         this.serviceMap = [];
     }
     async adminLogin(form, option) {
@@ -176,40 +177,38 @@ export default class Admin extends Skapi {
             'broadway',
             'documentation'
         ];
-        let { subdomain = null } = params;
-        if (!subdomain) {
-            throw '"params.subdomain" is required';
-        }
+        let { subdomain = '' } = params;
         let service = this.services[serviceId];
-        if (params.subdomain.length < 4 || invalid.includes(subdomain)) {
+        if (!service) {
+            throw 'Service does not exists.';
+        }
+        if (subdomain && (subdomain.length < 4 || invalid.includes(subdomain))) {
             throw 'The subdomain has been taken.';
         }
         if (service?.subdomain === subdomain) {
             return service;
         }
-        await this.request('register-subdomain', { service: serviceId, subdomain, exec: 'register' }, {
+        if (service?.subdomain) {
+            if (subdomain && service?.subdomain[0] === '*') {
+                throw 'Previous subdomain is in removal process.';
+            }
+            else if (subdomain && service?.subdomain[0] === '+') {
+                throw `Previous subdomain is in transit to "${service.subdomain.slice(1)}".`;
+            }
+        }
+        let resp = await this.request('register-subdomain', { service: serviceId, subdomain }, {
             auth: true,
             method: 'post'
         });
         service.subdomain = subdomain;
-        return service;
-    }
-    async deleteSubdomain(serviceId, cb) {
-        await this.require(Required.ADMIN);
-        let service = this.services[serviceId];
-        if (!service?.subdomain || service.subdomain[0] === '*') {
-            return service;
+        if (typeof resp !== 'string') {
+            Object.assign(service, resp);
         }
-        await this.request('register-subdomain', { service: serviceId, subdomain: service.subdomain, exec: 'remove' }, {
-            auth: true,
-            method: 'post'
-        });
-        service.subdomain = '*' + service.subdomain;
-        if (typeof cb === 'function') {
+        if (typeof params.cb === 'function') {
             let callbackInterval = (serviceId, cb, time = 1000) => {
-                if (this.services[serviceId]?.subdomain && this.services[serviceId].subdomain?.[0] === '*') {
+                if (this.services[serviceId]?.subdomain && this.services[serviceId].subdomain?.[0] === '+' && this.services[serviceId].subdomain?.[0] === '*') {
                     this.getServices(serviceId).then(res => {
-                        if (res[0]?.subdomain) {
+                        if (!res[0]?.subdomain || res[0]?.subdomain && res[0].subdomain[0] !== '+' && res[0].subdomain[0] !== '*') {
                             return cb(this.services[serviceId]);
                         }
                         else {
@@ -222,7 +221,7 @@ export default class Admin extends Skapi {
                     return cb(this.services[serviceId]);
                 }
             };
-            callbackInterval(serviceId, cb);
+            callbackInterval(serviceId, params.cb);
         }
         return service;
     }
@@ -262,7 +261,7 @@ export default class Admin extends Skapi {
             if (typeof checkStatus === 'function') {
                 let callbackInterval = (serviceId, cb, time = 3000) => {
                     setTimeout(() => {
-                        this.refreshCDN(serviceId, { checkStatus: cb }).then(res => {
+                        this.refreshCDN(serviceId, { checkStatus: true }).then(res => {
                             if (res === 'COMPLETE') {
                                 return cb(res);
                             }
@@ -316,25 +315,6 @@ export default class Admin extends Skapi {
     async requestNewsletterSender(serviceId, params) {
         await this.require(Required.ALL);
         return this.request('request-newsletter-sender', { service: serviceId, group_numb: params.groupNum }, { auth: true });
-    }
-    async getNewsletterSubscribers(params, fetchOptions) {
-        await this.require(Required.ALL);
-        let sub = {
-            service: params.serviceId,
-            subscription: params.serviceId,
-            group: 0,
-            emailSubscription: true,
-            subscriber: params.email
-        };
-        return this.getSubscriptions(sub, fetchOptions, s => {
-            let subSplit = s.sub.split('#');
-            let subscription = {
-                email: subSplit[0],
-                locale: s.loc,
-                timestamp: s.stmp
-            };
-            return subscription;
-        });
     }
     async deleteNewsletter(params) {
         await this.require(Required.ADMIN);
