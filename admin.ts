@@ -111,7 +111,7 @@ export default class Admin extends Skapi {
 
         const regions = {
             US: 'us-east-2',
-            KR: 'ap-northeast-2',
+            JP: 'ap-northeast-1',
             SG: 'ap-southeast-1',
         }
 
@@ -149,7 +149,7 @@ export default class Admin extends Skapi {
             }
         }
 
-        let service = await this.request('register-service', Object.assign({ params }, { execute: 'create', region: serviceRegion }), { auth: true });
+        let service = await this.request('register-service', Object.assign(params, { execute: 'create', region: serviceRegion }), { auth: true });
         this.insertService(service);
 
         return service;
