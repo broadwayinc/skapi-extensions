@@ -156,10 +156,9 @@ export default class Admin extends Skapi {
     }
 
     async enableService(serviceId: string): Promise<Service> {
-        await this.require(Required.ALL);
-
         let service = this.services[serviceId];
         if (service.active === 0) {
+            await this.require(Required.ALL);
             await this.request('register-service', {
                 service: serviceId,
                 execute: 'enable'
@@ -172,10 +171,10 @@ export default class Admin extends Skapi {
     }
 
     async disableService(serviceId: string): Promise<Service> {
-        await this.require(Required.ALL);
-
         let service = this.services[serviceId];
+
         if (service.active > 0) {
+            await this.require(Required.ALL);
             await this.request('register-service', {
                 service: serviceId,
                 execute: 'disable'
