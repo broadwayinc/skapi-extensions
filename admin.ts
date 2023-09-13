@@ -217,10 +217,12 @@ export default class Admin extends Skapi {
                 to_update[p] = params[p];
             }
         }
-        
-        await this.require(Required.ALL);
-        await this.request('register-service', Object.assign({ execute: 'update', service: service.service }, to_update), { auth: true });
-        Object.assign(service, to_update);
+
+        if (Object.keys(to_update).length) {
+            await this.require(Required.ALL);
+            await this.request('register-service', Object.assign({ execute: 'update', service: service.service }, to_update), { auth: true });
+            Object.assign(service, to_update);
+        }
 
         return service;
     }
