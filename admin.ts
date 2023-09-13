@@ -172,7 +172,6 @@ export default class Admin extends Skapi {
 
     async disableService(serviceId: string): Promise<Service> {
         let service = this.services[serviceId];
-
         if (service.active > 0) {
             await this.require(Required.ALL);
             await this.request('register-service', {
