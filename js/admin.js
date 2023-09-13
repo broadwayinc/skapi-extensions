@@ -130,7 +130,6 @@ export default class Admin extends Skapi {
         return service;
     }
     async updateService(serviceId, params) {
-        await this.require(Required.ALL);
         let service = this.services[serviceId];
         if (!params) {
             return service;
@@ -149,6 +148,7 @@ export default class Admin extends Skapi {
                 to_update[p] = params[p];
             }
         }
+        await this.require(Required.ALL);
         await this.request('register-service', Object.assign({ execute: 'update', service: service.service }, to_update), { auth: true });
         Object.assign(service, to_update);
         return service;
