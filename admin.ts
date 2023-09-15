@@ -185,6 +185,29 @@ export default class Admin extends Skapi {
         return service;
     }
 
+    checkCorsOrigin(cors:string[]):string[] {
+        if (Array.isArray(cors)) {
+            let corsArr = cors.sort().map(c => {
+                let cstr=c.toLowerCase().trim();
+                if(/^[a-z0-9]+(?:[.][a-z0-9]+)*$/i.test(cstr)) {
+                    if(!cstr.includes('.')) {
+                        throw 'Invalid origin'
+                    }
+                    
+                    return cstr
+                }
+                else {
+                    throw 'Invalid origin'
+                }
+            });
+
+            return corsArr;
+        }
+        else {
+            return []
+        }
+    }
+
     async updateService(
         serviceId: string,
         params: {
@@ -203,12 +226,9 @@ export default class Admin extends Skapi {
         for (let p in params) {
             // only update the difference
             if (p === 'cors') {
-                if (Array.isArray(params.cors)) {
-                    // sort cors
-                    let cors = params.cors.sort().join(', ');
-                    if (cors !== service?.cors) {
-                        to_update.cors = params.cors;
-                    }
+                let corsArr = this.checkCorsOrigin(params.cors);
+                if(corsArr.join(', ') !== service?.cors) {
+                    to_update.cors = corsArr;
                 }
             }
             else if (params[p] !== service[p]) {
