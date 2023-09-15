@@ -29,7 +29,6 @@ export default class Admin extends Skapi {
     }): Promise<Service>;
     enableService(serviceId: string): Promise<Service>;
     disableService(serviceId: string): Promise<Service>;
-    checkCorsOrigin(cors: string[]): string[];
     updateService(serviceId: string, params: {
         name: string;
         cors: string[];
