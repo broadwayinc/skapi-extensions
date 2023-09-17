@@ -68,7 +68,7 @@ function insertItems(event) {
 function deleteItem(event) {
     let { sortBy, items, id, map, list } = event.data;
 
-    target = getIndexValue(list[items[0][id]], sortBy);
+    let target = getIndexValue(list[items[0][id]], sortBy);
     if (target === null) {
         return map;
     }

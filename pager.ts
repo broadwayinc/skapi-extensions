@@ -1,5 +1,3 @@
-const worker = new Worker('/skapi-extensions/js/pager_worker.js');
-
 export default class Pager {
     sortBy: string;
     id: string;
@@ -7,8 +5,10 @@ export default class Pager {
     map = [];
     list = {};
     resultsPerPage = 10;
+    worker: any;
 
     constructor(
+        worker,
         options: {
             id: string;
             sortBy?: string;
@@ -20,7 +20,7 @@ export default class Pager {
         if (!id || typeof id !== 'string') {
             throw 'id is required';
         }
-
+        this.worker = worker;
         this.id = id;
         this.sortBy = sortBy || id;
         this.order = order;
@@ -48,7 +48,7 @@ export default class Pager {
     ): Promise<"Insert Successful"> {
         let { withinRange = false } = options || {};
 
-        worker.postMessage({
+        this.worker.postMessage({
             method: 'insert',
             list: this.list,
             map: this.map,
@@ -64,7 +64,7 @@ export default class Pager {
         }
 
         return new Promise((res) => {
-            worker.onmessage = (event) => {
+            this.worker.onmessage = (event) => {
                 this.map = event.data;
                 res("Insert Successful");
             };
@@ -79,7 +79,7 @@ export default class Pager {
     ): Promise<"Edit Saved"> {
         let { withinRange = false } = options || {};
 
-        worker.postMessage({
+        this.worker.postMessage({
             method: 'edit',
             list: this.list,
             map: this.map,
@@ -91,7 +91,7 @@ export default class Pager {
         });
 
         return new Promise((res) => {
-            worker.onmessage = (event) => {
+            this.worker.onmessage = (event) => {
                 if (event.data) {
                     this.map = event.data;
                 }
@@ -103,7 +103,7 @@ export default class Pager {
     }
 
     deleteItem(id: string): Promise<"Item Deleted"> {
-        worker.postMessage({
+        this.worker.postMessage({
             method: 'delete',
             list: this.list,
             map: this.map,
@@ -114,7 +114,7 @@ export default class Pager {
         });
 
         return new Promise((res) => {
-            worker.onmessage = (event) => {
+            this.worker.onmessage = (event) => {
                 this.map = event.data;
 
                 delete this.list[id];

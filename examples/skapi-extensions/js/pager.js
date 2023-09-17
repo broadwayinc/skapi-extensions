@@ -1,6 +1,5 @@
-const worker = new Worker('/skapi-extensions/js/pager_worker.js');
 export default class Pager {
-    constructor(options) {
+    constructor(worker, options) {
         this.order = 'asc';
         this.map = [];
         this.list = {};
@@ -9,6 +8,7 @@ export default class Pager {
         if (!id || typeof id !== 'string') {
             throw 'id is required';
         }
+        this.worker = worker;
         this.id = id;
         this.sortBy = sortBy || id;
         this.order = order;
@@ -24,7 +24,7 @@ export default class Pager {
     }
     insertItems(items, options) {
         let { withinRange = false } = options || {};
-        worker.postMessage({
+        this.worker.postMessage({
             method: 'insert',
             list: this.list,
             map: this.map,
@@ -38,7 +38,7 @@ export default class Pager {
             this.list[item[this.id]] = item;
         }
         return new Promise((res) => {
-            worker.onmessage = (event) => {
+            this.worker.onmessage = (event) => {
                 this.map = event.data;
                 res("Insert Successful");
             };
@@ -46,7 +46,7 @@ export default class Pager {
     }
     editItem(item, options) {
         let { withinRange = false } = options || {};
-        worker.postMessage({
+        this.worker.postMessage({
             method: 'edit',
             list: this.list,
             map: this.map,
@@ -57,7 +57,7 @@ export default class Pager {
             withinRange: withinRange
         });
         return new Promise((res) => {
-            worker.onmessage = (event) => {
+            this.worker.onmessage = (event) => {
                 if (event.data) {
                     this.map = event.data;
                 }
@@ -67,7 +67,7 @@ export default class Pager {
         });
     }
     deleteItem(id) {
-        worker.postMessage({
+        this.worker.postMessage({
             method: 'delete',
             list: this.list,
             map: this.map,
@@ -77,7 +77,7 @@ export default class Pager {
             items: [this.list[id]]
         });
         return new Promise((res) => {
-            worker.onmessage = (event) => {
+            this.worker.onmessage = (event) => {
                 this.map = event.data;
                 delete this.list[id];
                 res("Item Deleted");

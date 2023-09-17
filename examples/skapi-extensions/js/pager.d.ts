@@ -5,7 +5,8 @@ export default class Pager {
     map: any[];
     list: {};
     resultsPerPage: number;
-    constructor(options: {
+    worker: any;
+    constructor(worker: any, options: {
         id: string;
         sortBy?: string;
         order?: 'asc' | 'desc';
