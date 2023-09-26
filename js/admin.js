@@ -292,6 +292,20 @@ export default class Admin extends Skapi {
             progress: params?.progress
         });
     }
+    async deleteRecFiles(params) {
+        await this.require(Required.ADMIN);
+        if (!params?.serviceId) {
+            throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
+        }
+        if (!params?.endpoints) {
+            throw new SkapiError('"params.endpoints" is required.', { code: 'INVALID_PARAMETER' });
+        }
+        return this.request('del-files', {
+            service: params.serviceId,
+            endpoints: params.endpoints,
+            storage: 'records'
+        }, { auth: true, method: 'post' });
+    }
     async deleteHostFiles(params) {
         await this.require(Required.ADMIN);
         if (!params?.serviceId) {

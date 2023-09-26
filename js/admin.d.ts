@@ -53,6 +53,10 @@ export default class Admin extends Skapi {
         completed: File[];
         failed: File[];
     }>;
+    deleteRecFiles(params: {
+        serviceId: string;
+        endpoints: string[];
+    }): Promise<string>;
     deleteHostFiles(params: {
         serviceId: string;
         paths: string[];

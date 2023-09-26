@@ -415,6 +415,27 @@ export default class Admin extends Skapi {
         } as any))
     }
 
+    async deleteRecFiles(
+        params: {
+            serviceId: string,
+            endpoints: string[] // path without subdomain ex) folder/file.html
+        }
+    ): Promise<string> {
+        await this.require(Required.ADMIN);
+        if (!params?.serviceId) {
+            throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
+        }
+        if (!params?.endpoints) {
+            throw new SkapiError('"params.endpoints" is required.', { code: 'INVALID_PARAMETER' });
+        }
+
+        return this.request('del-files', {
+            service: params.serviceId,
+            endpoints: params.endpoints,
+            storage: 'records'
+        }, { auth: true, method: 'post' });
+    }
+    
     async deleteHostFiles(
         params: {
             serviceId: string,
