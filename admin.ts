@@ -203,7 +203,7 @@ export default class Admin extends Skapi {
         for (let p in params) {
             // only update the difference
             if (p === 'cors') {
-                if(params[p].join(', ') !== service?.cors) {
+                if (params[p].join(', ') !== service?.cors) {
                     to_update.cors = params[p];
                 }
             }
@@ -420,7 +420,7 @@ export default class Admin extends Skapi {
             serviceId: string,
             endpoints: string[] // path without subdomain ex) folder/file.html
         }
-    ): Promise<string> {
+    ): Promise<{ [k: string]: any }[]> {
         await this.require(Required.ADMIN);
         if (!params?.serviceId) {
             throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
@@ -435,7 +435,7 @@ export default class Admin extends Skapi {
             storage: 'records'
         }, { auth: true, method: 'post' });
     }
-    
+
     async deleteHostFiles(
         params: {
             serviceId: string,
