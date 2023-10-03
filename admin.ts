@@ -393,7 +393,7 @@ export default class Admin extends Skapi {
         if (!this.services[serviceId].subdomain) {
             throw 'subdomain does not exists.';
         }
-        await this.request('set-404', { service: serviceId, page404: this.services[serviceId].subdomain + '/' + params.path }, { auth: true });
+        await this.request('set-404', { service: serviceId, page404: params.path }, { auth: true });
         return 'SUCCESS';
     }
 
@@ -492,26 +492,22 @@ export default class Admin extends Skapi {
     async listHostDirectory(
         serviceId: string,
         params: {
-            dir: string; // unix style dir without subdomain. ex) /folder/subfolder/
+            dir: string; // unix style dir with subdomain. ex) subdomain/folder/subfolder/[# if folder fetch]
         },
         fetchOptions: FetchOptions
     ): Promise<DatabaseResponse<
         {
             name: string; // file path ex) /folder/subfolder/file.txt
-            type: 'file' | 'folder';
-            size?: number; // only in file
-            lastModified?: number; // only in file
+            path: string;
+            size: number;
+            upl: number;
+            cnt: number;
         }
     >> {
         this.require(Required.ADMIN);
 
-        if (!params?.dir) {
-            params.dir = '/';
-        }
-
         return this.request('list-host-directory', Object.assign(params, { service: serviceId }), {
             fetchOptions,
-            auth: true,
             method: 'post'
         });
     }

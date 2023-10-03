@@ -17,7 +17,6 @@ export default class Admin extends Skapi {
         this.updateSubdomain = (serviceId, cb, time = 1000) => {
             if (this.services[serviceId]?.subdomain && (this.services[serviceId].subdomain?.[0] === '+' || this.services[serviceId].subdomain?.[0] === '*')) {
                 this.getServices(serviceId).then(res => {
-                    console.log({ internalFetch: res });
                     if (!res[0]?.subdomain || res[0]?.subdomain && res[0].subdomain[0] !== '+' && res[0].subdomain[0] !== '*') {
                         return cb(this.services[serviceId]);
                     }
@@ -73,7 +72,6 @@ export default class Admin extends Skapi {
         await this.require(Required.ADMIN);
         if (this.serviceMap.length === 0 || serviceId) {
             let services = await this.request('get-services', serviceId ? { service_id: serviceId } : null, { auth: true });
-            console.log({ services });
             for (let region in services) {
                 for (let service of services[region]) {
                     this.insertService(service);
@@ -279,7 +277,7 @@ export default class Admin extends Skapi {
         if (!this.services[serviceId].subdomain) {
             throw 'subdomain does not exists.';
         }
-        await this.request('set-404', { service: serviceId, page404: this.services[serviceId].subdomain + '/' + params.path }, { auth: true });
+        await this.request('set-404', { service: serviceId, page404: params.path }, { auth: true });
         return 'SUCCESS';
     }
     async uploadHostFiles(formData, params) {
