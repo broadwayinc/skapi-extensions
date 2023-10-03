@@ -490,7 +490,6 @@ export default class Admin extends Skapi {
     }
 
     async listHostDirectory(
-        serviceId: string,
         params: {
             dir: string; // unix style dir with subdomain. ex) subdomain/folder/subfolder/[# if folder fetch]
         },
@@ -506,7 +505,7 @@ export default class Admin extends Skapi {
     >> {
         this.require(Required.ADMIN);
 
-        return this.request('list-host-directory', Object.assign(params, { service: serviceId }), {
+        return this.request('list-host-directory', Object.assign(params), {
             fetchOptions,
             method: 'post'
         });
