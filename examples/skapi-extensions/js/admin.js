@@ -14,6 +14,23 @@ export default class Admin extends Skapi {
         super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' });
         this.services = {};
         this.serviceMap = [];
+        this.updateSubdomain = (serviceId, cb, time = 1000) => {
+            if (this.services[serviceId]?.subdomain && (this.services[serviceId].subdomain?.[0] === '+' || this.services[serviceId].subdomain?.[0] === '*')) {
+                this.getServices(serviceId).then(res => {
+                    console.log({ internalFetch: res });
+                    if (!res[0]?.subdomain || res[0]?.subdomain && res[0].subdomain[0] !== '+' && res[0].subdomain[0] !== '*') {
+                        return cb(this.services[serviceId]);
+                    }
+                    else {
+                        time *= 1.2;
+                        setTimeout(() => this.updateSubdomain(serviceId, cb, time), time);
+                    }
+                });
+            }
+            else {
+                return cb(this.services[serviceId]);
+            }
+        };
     }
     async adminLogin(form, option) {
         let { remember = false } = option || {};
@@ -56,6 +73,7 @@ export default class Admin extends Skapi {
         await this.require(Required.ADMIN);
         if (this.serviceMap.length === 0 || serviceId) {
             let services = await this.request('get-services', serviceId ? { service_id: serviceId } : null, { auth: true });
+            console.log({ services });
             for (let region in services) {
                 for (let service of services[region]) {
                     this.insertService(service);
@@ -65,7 +83,7 @@ export default class Admin extends Skapi {
                 return [this.services[serviceId]];
             }
         }
-        return this.serviceMap.map(sid => this.services[sid]);
+        return this.services;
     }
     async createService(params) {
         await this.require(Required.ALL);
@@ -199,28 +217,11 @@ export default class Admin extends Skapi {
             auth: true,
             method: 'post'
         });
-        service.subdomain = subdomain;
         if (typeof resp !== 'string') {
             Object.assign(service, resp);
         }
         if (typeof params.cb === 'function') {
-            let callbackInterval = (serviceId, cb, time = 1000) => {
-                if (this.services[serviceId]?.subdomain && this.services[serviceId].subdomain?.[0] === '+' && this.services[serviceId].subdomain?.[0] === '*') {
-                    this.getServices(serviceId).then(res => {
-                        if (!res[0]?.subdomain || res[0]?.subdomain && res[0].subdomain[0] !== '+' && res[0].subdomain[0] !== '*') {
-                            return cb(this.services[serviceId]);
-                        }
-                        else {
-                            time *= 1.2;
-                            setTimeout(() => callbackInterval(serviceId, cb, time), time);
-                        }
-                    });
-                }
-                else {
-                    return cb(this.services[serviceId]);
-                }
-            };
-            callbackInterval(serviceId, params.cb);
+            this.updateSubdomain(serviceId, params.cb);
         }
         return service;
     }

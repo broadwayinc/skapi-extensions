@@ -81,7 +81,7 @@ export default class Admin extends Skapi {
         this.services[service.service] = service;
     }
 
-    async getServices(serviceId?: string): Promise<Service[]> {
+    async getServices(serviceId?: string): Promise<{ [serviceId: string]: Service } | Service[]> {
         await this.require(Required.ADMIN);
 
         if (this.serviceMap.length === 0 || serviceId) {
@@ -97,7 +97,8 @@ export default class Admin extends Skapi {
             }
         }
 
-        return this.serviceMap.map(sid => this.services[sid]);
+        // return this.serviceMap.map(sid => this.services[sid]);
+        return this.services;
     }
 
     async createService(
@@ -239,6 +240,23 @@ export default class Admin extends Skapi {
         return result;
     }
 
+    updateSubdomain = (serviceId: string, cb: (service: Service) => void, time = 1000): void => {
+        if (this.services[serviceId]?.subdomain && (this.services[serviceId].subdomain?.[0] === '+' || this.services[serviceId].subdomain?.[0] === '*')) {
+            this.getServices(serviceId).then(res => {
+                if (!res[0]?.subdomain || res[0]?.subdomain && res[0].subdomain[0] !== '+' && res[0].subdomain[0] !== '*') {
+                    return cb(this.services[serviceId]);
+                }
+                else {
+                    time *= 1.2;
+                    setTimeout(() => this.updateSubdomain(serviceId, cb, time), time);
+                }
+            });
+        }
+        else {
+            return cb(this.services[serviceId]);
+        }
+    }
+
     async registerSubdomain(
         serviceId: string,
         params: {
@@ -286,30 +304,12 @@ export default class Admin extends Skapi {
             method: 'post'
         });
 
-        service.subdomain = subdomain;
-
         if (typeof resp !== 'string') {
             Object.assign(service, resp);
         }
 
         if (typeof params.cb === 'function') {
-            let callbackInterval = (serviceId: string, cb: (service: Service) => void, time = 1000): void => {
-                if (this.services[serviceId]?.subdomain && this.services[serviceId].subdomain?.[0] === '+' && this.services[serviceId].subdomain?.[0] === '*') {
-                    this.getServices(serviceId).then(res => {
-                        if (!res[0]?.subdomain || res[0]?.subdomain && res[0].subdomain[0] !== '+' && res[0].subdomain[0] !== '*') {
-                            return cb(this.services[serviceId]);
-                        }
-                        else {
-                            time *= 1.2;
-                            setTimeout(() => callbackInterval(serviceId, cb, time), time);
-                        }
-                    });
-                }
-                else {
-                    return cb(this.services[serviceId]);
-                }
-            }
-            callbackInterval(serviceId, params.cb);
+            this.updateSubdomain(serviceId, params.cb);
         }
 
         return service;

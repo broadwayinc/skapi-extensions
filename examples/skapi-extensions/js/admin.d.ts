@@ -21,7 +21,9 @@ export default class Admin extends Skapi {
         userId: string;
     }): Promise<'SUCCESS'>;
     private insertService;
-    getServices(serviceId?: string): Promise<Service[]>;
+    getServices(serviceId?: string): Promise<{
+        [serviceId: string]: Service;
+    } | Service[]>;
     createService(params: {
         name: string;
         cors: string[];
@@ -35,6 +37,7 @@ export default class Admin extends Skapi {
         api_key: string;
     }): Promise<Service>;
     deleteService(serviceId: string): Promise<"the service has been successfully deleted.">;
+    updateSubdomain: (serviceId: string, cb: (service: Service) => void, time?: number) => void;
     registerSubdomain(serviceId: string, params: {
         subdomain: string;
         cb: (service: Service) => void;
