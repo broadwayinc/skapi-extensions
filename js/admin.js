@@ -313,6 +313,9 @@ export default class Admin extends Skapi {
         if (!params?.serviceId) {
             throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
         }
+        if (!params?.paths) {
+            throw new SkapiError('"params.paths" is required.', { code: 'INVALID_PARAMETER' });
+        }
         let service = this.services[params.serviceId];
         let pathsArr = [];
         for (let i = 0; i < params.paths.length; i++) {
