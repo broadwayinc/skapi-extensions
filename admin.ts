@@ -186,6 +186,15 @@ export default class Admin extends Skapi {
         return service;
     }
 
+    async getSubdomainInfo(
+        serviceId: string,
+        params: {
+            subdomain: string;
+        }
+    ): Promise<Service> {
+        return await this.request('subdomain-info', { subdomain: params.subdomain, service: serviceId }, { auth: true });
+    }
+
     async updateService(
         serviceId: string,
         params: {
@@ -446,9 +455,6 @@ export default class Admin extends Skapi {
         if (!params?.serviceId) {
             throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
         }
-        if (!params?.paths) {
-            throw new SkapiError('"params.paths" is required.', { code: 'INVALID_PARAMETER' });
-        }
 
         let service = this.services[params.serviceId];
         let pathsArr = [];
@@ -491,7 +497,7 @@ export default class Admin extends Skapi {
 
     async listHostDirectory(
         params: {
-            dir: string; // unix style dir with subdomain. ex) subdomain/folder/subfolder/[# if folder fetch]
+            dir: string; // unix style dir with subdomain. ex) subdomain/folder/subfolder
         },
         fetchOptions: FetchOptions
     ): Promise<DatabaseResponse<

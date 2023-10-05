@@ -31,6 +31,9 @@ export default class Admin extends Skapi {
     }): Promise<Service>;
     enableService(serviceId: string): Promise<Service>;
     disableService(serviceId: string): Promise<Service>;
+    getSubdomainInfo(serviceId: string, params: {
+        subdomain: string;
+    }): Promise<Service>;
     updateService(serviceId: string, params: {
         name: string;
         cors: string[];
@@ -79,13 +82,14 @@ export default class Admin extends Skapi {
         email: number;
         service: string;
     }>;
-    listHostDirectory(serviceId: string, params: {
+    listHostDirectory(params: {
         dir: string;
     }, fetchOptions: FetchOptions): Promise<DatabaseResponse<{
         name: string;
-        type: 'file' | 'folder';
-        size?: number;
-        lastModified?: number;
+        path: string;
+        size: number;
+        upl: number;
+        cnt: number;
     }>>;
     private require;
 }

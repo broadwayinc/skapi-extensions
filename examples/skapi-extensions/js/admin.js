@@ -145,6 +145,9 @@ export default class Admin extends Skapi {
         }
         return service;
     }
+    async getSubdomainInfo(serviceId, params) {
+        return await this.request('subdomain-info', { subdomain: params.subdomain, service: serviceId }, { auth: true });
+    }
     async updateService(serviceId, params) {
         let service = this.services[serviceId];
         if (!params) {
@@ -310,9 +313,6 @@ export default class Admin extends Skapi {
         if (!params?.serviceId) {
             throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
         }
-        if (!params?.paths) {
-            throw new SkapiError('"params.paths" is required.', { code: 'INVALID_PARAMETER' });
-        }
         let service = this.services[params.serviceId];
         let pathsArr = [];
         for (let i = 0; i < params.paths.length; i++) {
@@ -336,14 +336,10 @@ export default class Admin extends Skapi {
         await this.require(Required.ADMIN);
         return this.request('storage-info', { service: serviceId }, { auth: true });
     }
-    async listHostDirectory(serviceId, params, fetchOptions) {
+    async listHostDirectory(params, fetchOptions) {
         this.require(Required.ADMIN);
-        if (!params?.dir) {
-            params.dir = '/';
-        }
-        return this.request('list-host-directory', Object.assign(params, { service: serviceId }), {
+        return this.request('list-host-directory', Object.assign(params), {
             fetchOptions,
-            auth: true,
             method: 'post'
         });
     }
