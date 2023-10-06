@@ -371,8 +371,9 @@ export default class Admin extends Skapi {
             if ((err as SkapiError).message === 'previous cdn refresh is in process.') {
                 return 'IN_PROCESS';
             }
-
-            throw err;
+            else {
+                throw err;
+            }
         }
         finally {
             if (typeof checkStatus === 'function') {
@@ -409,6 +410,7 @@ export default class Admin extends Skapi {
     async uploadHostFiles(
         formData: FormData,
         params: {
+            nestKey: string;
             serviceId: string;
             progress: (p: Progress) => void
         }
@@ -420,6 +422,7 @@ export default class Admin extends Skapi {
         return this.uploadFiles(formData, ({
             service: params.serviceId,
             request: 'host',
+            nestKey: params.nestKey,
             progress: params?.progress
         } as any))
     }

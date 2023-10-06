@@ -53,6 +53,7 @@ export default class Admin extends Skapi {
         path: string;
     }): Promise<'SUCCESS'>;
     uploadHostFiles(formData: FormData, params: {
+        nestKey: string;
         serviceId: string;
         progress: (p: Progress) => void;
     }): Promise<{

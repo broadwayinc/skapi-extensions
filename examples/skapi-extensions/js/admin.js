@@ -291,6 +291,7 @@ export default class Admin extends Skapi {
         return this.uploadFiles(formData, {
             service: params.serviceId,
             request: 'host',
+            nestKey: params.nestKey,
             progress: params?.progress
         });
     }
