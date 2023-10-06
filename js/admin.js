@@ -256,7 +256,9 @@ export default class Admin extends Skapi {
             if (err.message === 'previous cdn refresh is in process.') {
                 return 'IN_PROCESS';
             }
-            throw err;
+            else {
+                throw err;
+            }
         }
         finally {
             if (typeof checkStatus === 'function') {
