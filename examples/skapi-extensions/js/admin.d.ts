@@ -21,7 +21,7 @@ export default class Admin extends Skapi {
         userId: string;
     }): Promise<'SUCCESS'>;
     private insertService;
-    getServices(serviceId?: string): Promise<{
+    getServices(serviceId?: string, refresh?: boolean): Promise<{
         [serviceId: string]: Service;
     } | Service[]>;
     createService(params: {
