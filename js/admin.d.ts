@@ -55,7 +55,7 @@ export default class Admin extends Skapi {
     uploadHostFiles(formData: FormData, params: {
         nestKey: string;
         serviceId: string;
-        progress: (p: Progress) => void;
+        progress: (p: any) => void;
     }): Promise<{
         completed: File[];
         failed: File[];

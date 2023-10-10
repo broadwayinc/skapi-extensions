@@ -416,7 +416,7 @@ export default class Admin extends Skapi {
         params: {
             nestKey: string;
             serviceId: string;
-            progress: (p: Progress) => void
+            progress: (p) => void
         }
     ): Promise<{ completed: File[]; failed: File[]; }> {
         await this.require(Required.ADMIN);
