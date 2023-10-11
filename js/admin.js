@@ -89,9 +89,10 @@ export default class Admin extends Skapi {
     async createService(params) {
         await this.require(Required.ALL);
         const regions = {
-            US: 'us-east-2',
-            JP: 'ap-northeast-1',
+            US: 'us-west-2',
+            KR: 'ap-northeast-2',
             SG: 'ap-southeast-1',
+            IN: 'ap-south-1'
         };
         let currentLocale = this.connection.locale;
         let serviceRegion = '';
