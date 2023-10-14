@@ -86,6 +86,7 @@ export default class Admin extends Skapi {
 
         if (refresh) {
             this.serviceMap = [];
+            this.services = {};
         }
 
         if (this.serviceMap.length === 0 || serviceId) {

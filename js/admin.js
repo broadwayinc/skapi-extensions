@@ -72,6 +72,7 @@ export default class Admin extends Skapi {
         await this.require(Required.ADMIN);
         if (refresh) {
             this.serviceMap = [];
+            this.services = {};
         }
         if (this.serviceMap.length === 0 || serviceId) {
             let services = await this.request('get-services', serviceId ? { service_id: serviceId } : null, { auth: true });
