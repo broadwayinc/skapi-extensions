@@ -343,6 +343,14 @@ export default class Admin extends Skapi {
         await this.require(Required.ADMIN);
         return this.request('delete-newsletter', params, { auth: true });
     }
+    async resendInvitation(params) {
+        let resend = await this.request("confirm-signup", {
+            service: params.service,
+            is_invitation: params.email,
+            redirect: params.redirect
+        }, { auth: true });
+        return resend;
+    }
     async storageInformation(serviceId) {
         await this.require(Required.ADMIN);
         return this.request('storage-info', { service: serviceId }, { auth: true });

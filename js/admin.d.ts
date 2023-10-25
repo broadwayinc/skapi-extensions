@@ -77,6 +77,11 @@ export default class Admin extends Skapi {
         message_id: string;
         group: number;
     }): Promise<any>;
+    resendInvitation(params: {
+        service: string;
+        email: string;
+        redirect: string;
+    }): Promise<'SUCCESS: Invitation E-Mail has been sent.'>;
     storageInformation(serviceId: string): Promise<{
         cloud: number;
         database: number;
