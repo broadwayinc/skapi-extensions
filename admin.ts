@@ -497,6 +497,22 @@ export default class Admin extends Skapi {
         return this.request('delete-newsletter', params, { auth: true });
     }
 
+    async resendInvitation(
+        params: {
+            service: string,
+            email: string,
+            redirect: string
+        }
+    ): Promise<'SUCCESS: Invitation E-Mail has been sent.'> {
+        let resend = await this.request("confirm-signup", {
+            service: params.service,
+            is_invitation: params.email,
+            redirect: params.redirect
+        }, { auth: true });
+
+        return resend; // 'SUCCESS: Signup confirmation E-Mail has been sent.'
+    }
+
     async storageInformation(serviceId: string): Promise<{
         cloud: number; // cloud storage used
         database: number; // database size
