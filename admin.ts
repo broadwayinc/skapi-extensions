@@ -510,7 +510,7 @@ export default class Admin extends Skapi {
             redirect: params.redirect
         }, { auth: true });
 
-        return resend; // 'SUCCESS: Signup confirmation E-Mail has been sent.'
+        return resend; // 'SUCCESS: Invitation E-Mail has been sent.'
     }
 
     async storageInformation(serviceId: string): Promise<{
