@@ -55,6 +55,6 @@ http.createServer(function (request, response) {
         response.writeHead(500);
         response.end('SOMETHING WENT WRONG');
     }
-}).listen(3300);
+}).listen(3000);
 
-console.log('Server running at http://localhost:3300');
+console.log('Server running at http://localhost:3000');
