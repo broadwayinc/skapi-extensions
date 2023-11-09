@@ -10,10 +10,10 @@ export default class Pager {
     constructor(
         worker,
         options: {
-            id: string;
-            sortBy?: string;
-            order?: 'asc' | 'desc';
-            resultsPerPage?: number;
+            id: string; // unique id of the data
+            sortBy?: string; // sort by which key
+            order?: 'asc' | 'desc'; // sort order
+            resultsPerPage?: number; // how many items per page
         }
     ) {
         let { id, sortBy, order = 'asc', resultsPerPage = 10 } = options;
