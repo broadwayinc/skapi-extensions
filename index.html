@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<pre>
+pager.ts is a TypeScript library for paging data.
+The built files are in the /js folder.
+
+- js/pager_worker.js: Web Worker code
+- js/pager.js: Main code
+</pre>
+
+<script type='module'>
+    import Pager from '/js/pager.js';
+
+    async function asyncRun() {
+        // Read the web worker code
+        const worker = new Worker('js/pager_worker.js');
+
+        // setup pager
+        const pager = new Pager(worker, {
+            id: 'unique_id', // key name for unique id
+            sortBy: 'name', // key name for sorting
+            order: 'asc',
+            resultsPerPage: 5
+        });
+
+        let data = [
+            {
+                unique_id: 1,
+                name: 'John',
+            },
+            {
+                unique_id: 2,
+                name: 'Jane',
+            },
+            {
+                unique_id: 3,
+                name: 'Joe',
+            },
+            {
+                unique_id: 4,
+                name: 'Jack',
+            },
+            {
+                unique_id: 5,
+                name: 'Jill',
+            },
+            {
+                unique_id: 6,
+                name: 'James',
+            },
+            {
+                unique_id: 7,
+                name: 'Jenny',
+            },
+            {
+                unique_id: 8,
+                name: 'Jesse',
+            },
+            {
+                unique_id: 9,
+                name: 'Jasmine',
+            },
+            {
+                unique_id: 10,
+                name: 'Jasper',
+            },
+            {
+                unique_id: 11,
+                name: 'Jared',
+            },
+            {
+                unique_id: 12,
+                name: 'Jade',
+            },
+            {
+                unique_id: 13,
+                name: 'Jaden',
+            },
+            {
+                unique_id: 14,
+                name: 'Jax',
+            },
+            {
+                unique_id: 15,
+                name: 'Jaxson',
+            },
+            {
+                unique_id: 16,
+                name: 'Jay',
+            },
+            {
+                unique_id: 17,
+                name: 'Jayden',
+            },
+            {
+                unique_id: 18,
+                name: 'Jayce',
+            },
+            {
+                unique_id: 19,
+                name: 'Jayceon',
+            },
+            {
+                unique_id: 20,
+                name: 'Jaxton',
+            }
+        ]
+
+        // add data
+        await pager.insertItems(data);
+
+        // get 2nd page
+        console.log('get 2nd page');
+
+        // getPage is not a promise
+        // JSON parse and stringify is to make a copy of the data (to escape object reference)
+        console.log(JSON.parse(JSON.stringify(pager.getPage(2))));
+
+        // update data 11 name to Jared -> Jarhead
+        await pager.editItem({
+            unique_id: 11,
+            name: 'Jarhead',
+        });
+
+        // check the data
+        console.log('name 11 changed to Jared -> Jarhead')
+        console.log(JSON.parse(JSON.stringify(pager.getPage(2))));
+
+        // delete data 11
+        await pager.deleteItem(11);
+
+        // check the data
+        console.log('data 11 deleted');
+        console.log(JSON.parse(JSON.stringify(pager.getPage(2))));
+    }
+
+    asyncRun();
+</script>

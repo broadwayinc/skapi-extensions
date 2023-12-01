@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc; cp countries.js js/"
+    "build": "npx tsc; cp countries.js js/",
+    "dev": "node server.js"
   },
   "author": "",
   "license": "ISC",
