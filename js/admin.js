@@ -14,6 +14,7 @@ export default class Admin extends Skapi {
         super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' });
         this.services = {};
         this.serviceMap = [];
+        this.payment_api = 'https://rq1ct6mjm4.execute-api.eu-west-1.amazonaws.com/api/';
         this.updateSubdomain = (serviceId, cb, time = 1000) => {
             if (this.services[serviceId]?.subdomain && (this.services[serviceId].subdomain?.[0] === '+' || this.services[serviceId].subdomain?.[0] === '*')) {
                 this.getServices(serviceId).then(res => {
@@ -30,6 +31,13 @@ export default class Admin extends Skapi {
                 return cb(this.services[serviceId]);
             }
         };
+    }
+    async request_checkout_session(prod_id) {
+        await this.require(Required.ADMIN);
+        return this.request(this.payment_api + 'payment', {
+            action: 'request_checkout_session',
+            lookup_key: prod_id
+        }, { auth: true });
     }
     async adminLogin(form, option) {
         let { remember = false } = option || {};
@@ -91,7 +99,7 @@ export default class Admin extends Skapi {
         await this.require(Required.ALL);
         const regions = {
             US: 'us-west-2',
-            KR: 'ap-northeast-2',
+            KR: 'ap-northeast-1',
             SG: 'ap-southeast-1',
             IN: 'ap-south-1'
         };
