@@ -587,7 +587,7 @@ export default class Admin extends Skapi {
     >> {
         this.require(Required.ADMIN);
 
-        return this.request(await this.getAdminEndpoint('list-host-directory'), Object.assign(params), {
+        return this.request(await this.getAdminEndpoint('list-host-directory', false), Object.assign(params), {
             fetchOptions,
             method: 'post'
         });
