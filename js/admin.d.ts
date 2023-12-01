@@ -5,6 +5,7 @@ export default class Admin extends Skapi {
     };
     serviceMap: any[];
     constructor(host: string);
+    getAdminEndpoint: (dest: string, auth?: boolean) => Promise<string>;
     adminLogin(form: {
         email: string;
         password: string;
