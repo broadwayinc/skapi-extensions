@@ -14,6 +14,7 @@ export default class Admin extends Skapi {
         super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' });
         this.services = {};
         this.serviceMap = [];
+        this.payment_api = 'https://rq1ct6mjm4.execute-api.eu-west-1.amazonaws.com/api/';
         this.getAdminEndpoint = async (dest, auth = true) => {
             const endpoints = await Promise.all([
                 this.admin_endpoint,
@@ -64,6 +65,13 @@ export default class Admin extends Skapi {
                 return cb(this.services[serviceId]);
             }
         };
+    }
+    async request_checkout_session(prod_id) {
+        await this.require(Required.ADMIN);
+        return this.request(this.payment_api + 'payment', {
+            action: 'request_checkout_session',
+            lookup_key: prod_id
+        }, { auth: true });
     }
     async adminLogin(form, option) {
         let { remember = false } = option || {};
@@ -125,7 +133,7 @@ export default class Admin extends Skapi {
         await this.require(Required.ALL);
         const regions = {
             US: 'us-west-2',
-            KR: 'ap-northeast-2',
+            KR: 'ap-northeast-1',
             SG: 'ap-southeast-1',
             IN: 'ap-south-1'
         };
@@ -391,7 +399,7 @@ export default class Admin extends Skapi {
     }
     async listHostDirectory(params, fetchOptions) {
         this.require(Required.ADMIN);
-        return this.request(await this.getAdminEndpoint('list-host-directory'), Object.assign(params), {
+        return this.request(await this.getAdminEndpoint('list-host-directory', false), Object.assign(params), {
             fetchOptions,
             method: 'post'
         });

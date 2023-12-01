@@ -8,6 +8,7 @@ export default class Admin extends Skapi {
         [serviceId: string]: Service;
     } = {};
     serviceMap = [];
+    payment_api = 'https://rq1ct6mjm4.execute-api.eu-west-1.amazonaws.com/api/';
 
     constructor(host: string) {
         if (!host) {
@@ -15,6 +16,14 @@ export default class Admin extends Skapi {
         }
 
         super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' });
+    }
+
+    async request_checkout_session(prod_id) {
+        await this.require(Required.ADMIN);
+        return this.request(this.payment_api + 'payment', {
+            action: 'request_checkout_session',
+            lookup_key: prod_id
+        }, { auth: true });
     }
 
     getAdminEndpoint = async (dest: string, auth: boolean = true) => {
@@ -61,7 +70,7 @@ export default class Admin extends Skapi {
             email: string;
             password: string;
         },
-        option?: { remember?: boolean } & FormSubmitCallback
+        option?: { remember?: boolean; } & FormSubmitCallback
     ): Promise<UserProfile> {
         let { remember = false } = option || {};
         window.localStorage.setItem('remember', remember.toString());
@@ -72,7 +81,7 @@ export default class Admin extends Skapi {
     async blockAccount(
         serviceId: string,
         params: {
-            userId: string
+            userId: string;
         }
     ): Promise<'SUCCESS'> {
         await this.require(Required.ADMIN);
@@ -83,7 +92,7 @@ export default class Admin extends Skapi {
     async unblockAccount(
         serviceId: string,
         params: {
-            userId: string
+            userId: string;
         }
     ): Promise<'SUCCESS'> {
         await this.require(Required.ADMIN);
@@ -94,7 +103,7 @@ export default class Admin extends Skapi {
     async deleteAccount(
         serviceId: string,
         params: {
-            userId: string
+            userId: string;
         }
     ): Promise<'SUCCESS'> {
         await this.require(Required.ADMIN);
@@ -107,7 +116,7 @@ export default class Admin extends Skapi {
             let keyValue = service.timestamp;
             let indexToInsert = this.serviceMap.findIndex(sid => {
                 let item = this.services[sid].timestamp;
-                return keyValue < item
+                return keyValue < item;
             });
 
             if (indexToInsert !== -1) {
@@ -120,7 +129,7 @@ export default class Admin extends Skapi {
         this.services[service.service] = service;
     }
 
-    async getServices(serviceId?: string, refresh = false): Promise<{ [serviceId: string]: Service } | Service[]> {
+    async getServices(serviceId?: string, refresh = false): Promise<{ [serviceId: string]: Service; } | Service[]> {
         await this.require(Required.ADMIN);
 
         if (refresh) {
@@ -156,10 +165,10 @@ export default class Admin extends Skapi {
 
         const regions = {
             US: 'us-west-2',
-            KR: 'ap-northeast-2',
+            KR: 'ap-northeast-1',
             SG: 'ap-southeast-1',
             IN: 'ap-south-1'
-        }
+        };
 
         let currentLocale = this.connection.locale;
         let serviceRegion = '';
@@ -183,7 +192,7 @@ export default class Admin extends Skapi {
                 const d = R * c; // in metres
 
                 return d;
-            }
+            };
 
             let difference = null;
             for (let region in regions) {
@@ -253,7 +262,7 @@ export default class Admin extends Skapi {
             return service;
         }
 
-        let to_update: { [key: string]: any } = {};
+        let to_update: { [key: string]: any; } = {};
 
         for (let p in params) {
             // only update the difference
@@ -309,13 +318,13 @@ export default class Admin extends Skapi {
         else {
             return cb(this.services[serviceId]);
         }
-    }
+    };
 
     async registerSubdomain(
         serviceId: string,
         params: {
             subdomain: string,
-            cb: (service: Service) => void // callback runs when the subdomain process is complete
+            cb: (service: Service) => void; // callback runs when the subdomain process is complete
         }
     ): Promise<Service> {
         await this.require(Required.ADMIN);
@@ -337,7 +346,7 @@ export default class Admin extends Skapi {
         }
 
         if (subdomain && (subdomain.length < 4 || invalid.includes(subdomain))) {
-            throw 'The subdomain has been taken.'
+            throw 'The subdomain has been taken.';
         }
 
         if (service?.subdomain === subdomain) {
@@ -346,10 +355,10 @@ export default class Admin extends Skapi {
 
         if (service?.subdomain) {
             if (subdomain && service?.subdomain[0] === '*') {
-                throw 'Previous subdomain is in removal process.'
+                throw 'Previous subdomain is in removal process.';
             }
             else if (subdomain && service?.subdomain[0] === '+') {
-                throw `Previous subdomain is in transit to "${service.subdomain.slice(1)}".`
+                throw `Previous subdomain is in transit to "${service.subdomain.slice(1)}".`;
             }
         }
 
@@ -406,7 +415,7 @@ export default class Admin extends Skapi {
                 return res;
             }
 
-            return 'IS_QUEUED'
+            return 'IS_QUEUED';
 
         }
         catch (err) {
@@ -431,7 +440,7 @@ export default class Admin extends Skapi {
                             callbackInterval(serviceId, cb, time);
                         });
                     }, time);
-                }
+                };
                 callbackInterval(serviceId, checkStatus);
             }
         }
@@ -440,7 +449,7 @@ export default class Admin extends Skapi {
     async set404(
         params: {
             serviceId: string,
-            path: string // Set path to file of 404 page. ex) folder/file.html
+            path: string; // Set path to file of 404 page. ex) folder/file.html
         }
     ): Promise<'SUCCESS'> {
         await this.require(Required.ADMIN);
@@ -457,7 +466,7 @@ export default class Admin extends Skapi {
         params: {
             nestKey: string;
             serviceId: string;
-            progress: (p) => void
+            progress: (p) => void;
         }
     ): Promise<{ completed: File[]; failed: File[]; }> {
         await this.require(Required.ADMIN);
@@ -469,15 +478,15 @@ export default class Admin extends Skapi {
             request: 'host',
             nestKey: params.nestKey,
             progress: params?.progress
-        } as any))
+        } as any));
     }
 
     async deleteRecFiles(
         params: {
             serviceId: string,
-            endpoints: string[] // path without subdomain ex) folder/file.html
+            endpoints: string[]; // path without subdomain ex) folder/file.html
         }
-    ): Promise<{ [k: string]: any }[]> {
+    ): Promise<{ [k: string]: any; }[]> {
         await this.require(Required.ADMIN);
         if (!params?.serviceId) {
             throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
@@ -496,7 +505,7 @@ export default class Admin extends Skapi {
     async deleteHostFiles(
         params: {
             serviceId: string,
-            paths: string[] // path without subdomain ex) folder/file.html
+            paths: string[]; // path without subdomain ex) folder/file.html
         }
     ): Promise<string> {
         await this.require(Required.ADMIN);
@@ -521,7 +530,7 @@ export default class Admin extends Skapi {
         }, { auth: true, method: 'post' });
     }
 
-    async requestNewsletterSender(serviceId: string, params: { groupNum: number }): Promise<string> {
+    async requestNewsletterSender(serviceId: string, params: { groupNum: number; }): Promise<string> {
         await this.require(Required.ALL);
         return this.request(await this.getAdminEndpoint('request-newsletter-sender'), { service: serviceId, group_numb: params.groupNum }, { auth: true });
     }
@@ -540,7 +549,7 @@ export default class Admin extends Skapi {
         params: {
             service: string,
             email: string,
-            redirect: string
+            redirect: string;
         }
     ): Promise<'SUCCESS: Invitation E-Mail has been sent.'> {
         let resend = await this.request("confirm-signup", {
@@ -578,7 +587,7 @@ export default class Admin extends Skapi {
     >> {
         this.require(Required.ADMIN);
 
-        return this.request(await this.getAdminEndpoint('list-host-directory'), Object.assign(params), {
+        return this.request(await this.getAdminEndpoint('list-host-directory', false), Object.assign(params), {
             fetchOptions,
             method: 'post'
         });
