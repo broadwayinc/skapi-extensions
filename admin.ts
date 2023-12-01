@@ -17,6 +17,45 @@ export default class Admin extends Skapi {
         super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' });
     }
 
+    getAdminEndpoint = async (dest: string, auth: boolean = true) => {
+        const endpoints = await Promise.all([
+            this.admin_endpoint,
+            this.record_endpoint
+        ]);
+
+        const admin = endpoints[0];
+        const record = endpoints[1];
+        const get_ep = () => {
+            switch (dest) {
+                case 'delete-newsletter':
+                case 'block-account':
+                case 'register-service':
+                case 'get-services':
+                case 'register-subdomain':
+                case 'list-host-directory':
+                case 'refresh-cdn':
+                case 'request-newsletter-sender':
+                case 'set-404':
+                case 'subdomain-info':
+                    return {
+                        public: admin.admin_public,
+                        private: admin.admin_private
+                    };
+
+                case 'storage-info':
+                    return {
+                        private: record.record_private,
+                        public: record.record_public
+                    };
+
+                default:
+                    return null
+            }
+        };
+
+        return (get_ep()?.[auth ? 'private' : 'public'] || '') + dest;
+    }
+
     async adminLogin(
         form: {
             email: string;
@@ -37,7 +76,7 @@ export default class Admin extends Skapi {
         }
     ): Promise<'SUCCESS'> {
         await this.require(Required.ADMIN);
-        await this.request('block-account', { service: serviceId, block: params.userId }, { auth: true });
+        await this.request(await this.getAdminEndpoint('block-account'), { service: serviceId, block: params.userId }, { auth: true });
         return 'SUCCESS';
     }
 
@@ -48,7 +87,7 @@ export default class Admin extends Skapi {
         }
     ): Promise<'SUCCESS'> {
         await this.require(Required.ADMIN);
-        await this.request('block-account', { service: serviceId, unblock: params.userId }, { auth: true });
+        await this.request(await this.getAdminEndpoint('block-account'), { service: serviceId, unblock: params.userId }, { auth: true });
         return 'SUCCESS';
     }
 
@@ -90,7 +129,7 @@ export default class Admin extends Skapi {
         }
 
         if (this.serviceMap.length === 0 || serviceId) {
-            let services = await this.request('get-services', serviceId ? { service_id: serviceId } : null, { auth: true });
+            let services = await this.request(await this.getAdminEndpoint('get-services'), serviceId ? { service_id: serviceId } : null, { auth: true });
             for (let region in services) {
                 for (let service of services[region]) {
                     this.insertService(service);
@@ -156,7 +195,7 @@ export default class Admin extends Skapi {
             }
         }
 
-        let service = await this.request('register-service', Object.assign(params, { execute: 'create', region: serviceRegion }), { auth: true });
+        let service = await this.request(await this.getAdminEndpoint('register-service'), Object.assign(params, { execute: 'create', region: serviceRegion }), { auth: true });
         this.insertService(service);
 
         return service;
@@ -166,7 +205,7 @@ export default class Admin extends Skapi {
         let service = this.services[serviceId];
         if (service.active === 0) {
             await this.require(Required.ALL);
-            await this.request('register-service', {
+            await this.request(await this.getAdminEndpoint('register-service'), {
                 service: serviceId,
                 execute: 'enable'
             }, { auth: true });
@@ -181,7 +220,7 @@ export default class Admin extends Skapi {
         let service = this.services[serviceId];
         if (service.active > 0) {
             await this.require(Required.ALL);
-            await this.request('register-service', {
+            await this.request(await this.getAdminEndpoint('register-service'), {
                 service: serviceId,
                 execute: 'disable'
             }, { auth: true });
@@ -198,7 +237,7 @@ export default class Admin extends Skapi {
             subdomain: string;
         }
     ): Promise<Service> {
-        return await this.request('subdomain-info', { subdomain: params.subdomain, service: serviceId }, { auth: true });
+        return await this.request(await this.getAdminEndpoint('subdomain-info'), { subdomain: params.subdomain, service: serviceId }, { auth: true });
     }
 
     async updateService(
@@ -230,7 +269,7 @@ export default class Admin extends Skapi {
 
         if (Object.keys(to_update).length) {
             await this.require(Required.ALL);
-            await this.request('register-service', Object.assign({ execute: 'update', service: service.service }, to_update), { auth: true });
+            await this.request(await this.getAdminEndpoint('register-service'), Object.assign({ execute: 'update', service: service.service }, to_update), { auth: true });
             Object.assign(service, to_update);
         }
 
@@ -244,7 +283,7 @@ export default class Admin extends Skapi {
             throw new SkapiError('the service should be disabled before delete.', { code: 'INVALID_REQUEST' });
         }
 
-        let result = await this.request('register-service', {
+        let result = await this.request(await this.getAdminEndpoint('register-service'), {
             service: serviceId,
             execute: 'delete'
         }, { auth: true });
@@ -314,7 +353,7 @@ export default class Admin extends Skapi {
             }
         }
 
-        let resp = await this.request('register-subdomain', { service: serviceId, subdomain }, {
+        let resp = await this.request(await this.getAdminEndpoint('register-subdomain'), { service: serviceId, subdomain }, {
             auth: true,
             method: 'post'
         });
@@ -354,7 +393,7 @@ export default class Admin extends Skapi {
         }
 
         try {
-            let res = await this.request('refresh-cdn', {
+            let res = await this.request(await this.getAdminEndpoint('refresh-cdn'), {
                 service: serviceId,
                 subdomain: service.subdomain,
                 exec: typeof checkStatus === 'boolean' && checkStatus ? 'status' : 'refresh'
@@ -409,7 +448,7 @@ export default class Admin extends Skapi {
         if (!this.services[serviceId].subdomain) {
             throw 'subdomain does not exists.';
         }
-        await this.request('set-404', { service: serviceId, page404: params.path }, { auth: true });
+        await this.request(await this.getAdminEndpoint('set-404'), { service: serviceId, page404: params.path }, { auth: true });
         return 'SUCCESS';
     }
 
@@ -484,7 +523,7 @@ export default class Admin extends Skapi {
 
     async requestNewsletterSender(serviceId: string, params: { groupNum: number }): Promise<string> {
         await this.require(Required.ALL);
-        return this.request('request-newsletter-sender', { service: serviceId, group_numb: params.groupNum }, { auth: true });
+        return this.request(await this.getAdminEndpoint('request-newsletter-sender'), { service: serviceId, group_numb: params.groupNum }, { auth: true });
     }
 
     async deleteNewsletter(
@@ -494,7 +533,7 @@ export default class Admin extends Skapi {
         }
     ) {
         await this.require(Required.ADMIN);
-        return this.request('delete-newsletter', params, { auth: true });
+        return this.request(await this.getAdminEndpoint('delete-newsletter'), params, { auth: true });
     }
 
     async resendInvitation(
@@ -520,7 +559,7 @@ export default class Admin extends Skapi {
         service: string;
     }> {
         await this.require(Required.ADMIN);
-        return this.request('storage-info', { service: serviceId }, { auth: true });
+        return this.request(await this.getAdminEndpoint('storage-info'), { service: serviceId }, { auth: true });
     }
 
     async listHostDirectory(
@@ -539,7 +578,7 @@ export default class Admin extends Skapi {
     >> {
         this.require(Required.ADMIN);
 
-        return this.request('list-host-directory', Object.assign(params), {
+        return this.request(await this.getAdminEndpoint('list-host-directory'), Object.assign(params), {
             fetchOptions,
             method: 'post'
         });
