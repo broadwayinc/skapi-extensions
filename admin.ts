@@ -10,12 +10,12 @@ export default class Admin extends Skapi {
     serviceMap = [];
     payment_api = 'https://rq1ct6mjm4.execute-api.eu-west-1.amazonaws.com/api/';
 
-    constructor(host: string) {
+    constructor(host: string, etc = null) {
         if (!host) {
             throw 'ask Baksa for host id';
         }
 
-        super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' });
+        super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' }, etc);
     }
 
     async request_checkout_session(prod_id) {
@@ -165,7 +165,8 @@ export default class Admin extends Skapi {
 
         const regions = {
             US: 'us-west-2',
-            KR: 'ap-northeast-2',
+            // KR: 'ap-northeast-2',
+            KR: 'ap-northeast-1', // JP
             SG: 'ap-southeast-1',
             IN: 'ap-south-1'
         };
