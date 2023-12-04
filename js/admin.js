@@ -7,11 +7,11 @@ var Required;
     Required[Required["ALL"] = 2] = "ALL";
 })(Required || (Required = {}));
 export default class Admin extends Skapi {
-    constructor(host) {
+    constructor(host, etc = null) {
         if (!host) {
             throw 'ask Baksa for host id';
         }
-        super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' });
+        super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' }, etc);
         this.services = {};
         this.serviceMap = [];
         this.payment_api = 'https://rq1ct6mjm4.execute-api.eu-west-1.amazonaws.com/api/';
@@ -133,7 +133,7 @@ export default class Admin extends Skapi {
         await this.require(Required.ALL);
         const regions = {
             US: 'us-west-2',
-            KR: 'ap-northeast-2',
+            KR: 'ap-northeast-1',
             SG: 'ap-southeast-1',
             IN: 'ap-south-1'
         };

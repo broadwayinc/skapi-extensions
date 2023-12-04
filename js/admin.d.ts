@@ -5,7 +5,7 @@ export default class Admin extends Skapi {
     };
     serviceMap: any[];
     payment_api: string;
-    constructor(host: string);
+    constructor(host: string, etc?: any);
     request_checkout_session(prod_id: any): Promise<any>;
     getAdminEndpoint: (dest: string, auth?: boolean) => Promise<string>;
     adminLogin(form: {
