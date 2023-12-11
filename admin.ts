@@ -438,7 +438,7 @@ export default class Admin extends Skapi {
         }
         finally {
             if (typeof checkStatus === 'function') {
-                let callbackInterval = (serviceId, cb, time = 3000) => {
+                let callbackInterval = (serviceId, cb, time = 30000) => {
                     setTimeout(() => {
                         this.refreshCDN(serviceId, { checkStatus: true }).then(res => {
                             if (res === 'COMPLETE') {
