@@ -32,11 +32,17 @@ export default class Admin extends Skapi {
         cors: string[];
         api_key: string;
     }): Promise<Service>;
-    enableService(serviceId: string): Promise<Service>;
-    disableService(serviceId: string): Promise<Service>;
+    enableService(serviceId: string): Promise<string>;
+    disableService(serviceId: string): Promise<string>;
     getSubdomainInfo(serviceId: string, params: {
         subdomain: string;
-    }): Promise<Service>;
+    }): Promise<{
+        srvc: string;
+        subd: string;
+        ownr: string;
+        stat: string;
+        ["404"]?: string;
+    }>;
     updateService(serviceId: string, params: {
         name: string;
         cors: string[];

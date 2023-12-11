@@ -165,8 +165,8 @@ export default class Admin extends Skapi {
 
         const regions = {
             US: 'us-west-2',
-            // KR: 'ap-northeast-2',
-            KR: 'ap-northeast-1', // JP
+            KR: 'ap-northeast-2',
+            // KR: 'ap-northeast-1', // JP
             SG: 'ap-southeast-1',
             IN: 'ap-south-1'
         };
@@ -211,7 +211,7 @@ export default class Admin extends Skapi {
         return service;
     }
 
-    async enableService(serviceId: string): Promise<Service> {
+    async enableService(serviceId: string): Promise<string> {
         let service = this.services[serviceId];
         if (service.active === 0) {
             await this.require(Required.ALL);
@@ -226,7 +226,7 @@ export default class Admin extends Skapi {
         return service;
     }
 
-    async disableService(serviceId: string): Promise<Service> {
+    async disableService(serviceId: string): Promise<string> {
         let service = this.services[serviceId];
         if (service.active > 0) {
             await this.require(Required.ALL);
@@ -246,7 +246,13 @@ export default class Admin extends Skapi {
         params: {
             subdomain: string;
         }
-    ): Promise<Service> {
+    ): Promise<{
+        srvc: string;
+        subd: string;
+        ownr: string;
+        stat: string;
+        ["404"]?: string;
+    }> {
         return await this.request(await this.getAdminEndpoint('subdomain-info'), { subdomain: params.subdomain, service: serviceId }, { auth: true });
     }
 

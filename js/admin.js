@@ -133,7 +133,7 @@ export default class Admin extends Skapi {
         await this.require(Required.ALL);
         const regions = {
             US: 'us-west-2',
-            KR: 'ap-northeast-1',
+            KR: 'ap-northeast-2',
             SG: 'ap-southeast-1',
             IN: 'ap-south-1'
         };
