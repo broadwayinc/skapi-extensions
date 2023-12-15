@@ -94,6 +94,14 @@ export default class Admin extends Skapi {
         await this.request('remove-account', { service: serviceId, delete: params.userId }, { auth: true });
         return 'SUCCESS';
     }
+    async registerTicket(serviceId, params) {
+        await this.require(Required.ALL);
+        return this.request('ticket', Object.assign(params, { service: serviceId }), { auth: true });
+    }
+    async unregisterTicket(serviceId, params) {
+        await this.require(Required.ALL);
+        return this.request('ticket', Object.assign(params, { service: serviceId }), { auth: true });
+    }
     insertService(service) {
         if (!this.services[service.service]) {
             let keyValue = service.timestamp;

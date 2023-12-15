@@ -23,6 +23,16 @@ export default class Admin extends Skapi {
     deleteAccount(serviceId: string, params: {
         userId: string;
     }): Promise<'SUCCESS'>;
+    registerTicket(serviceId: string, params: {
+        condition: string;
+        action: string;
+        desc: string;
+        count: number;
+        time_to_live: number;
+    }): Promise<string>;
+    unregisterTicket(serviceId: string, params: {
+        ticket_id: string;
+    }): Promise<string>;
     private insertService;
     getServices(serviceId?: string, refresh?: boolean): Promise<{
         [serviceId: string]: Service;
