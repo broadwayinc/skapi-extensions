@@ -7,7 +7,7 @@ var Required;
     Required[Required["ALL"] = 2] = "ALL";
 })(Required || (Required = {}));
 export default class Admin extends Skapi {
-    constructor(host, etc = null) {
+    constructor(host, etc = null, regions) {
         if (!host) {
             throw 'ask Baksa for host id';
         }
@@ -15,6 +15,12 @@ export default class Admin extends Skapi {
         this.services = {};
         this.serviceMap = [];
         this.payment_api = 'https://rq1ct6mjm4.execute-api.eu-west-1.amazonaws.com/api/';
+        this.regions = {
+            US: 'us-west-2',
+            KR: 'ap-northeast-2',
+            SG: 'ap-southeast-1',
+            IN: 'ap-south-1'
+        };
         this.getAdminEndpoint = async (dest, auth = true) => {
             const endpoints = await Promise.all([
                 this.admin_endpoint,
@@ -65,6 +71,9 @@ export default class Admin extends Skapi {
                 return cb(this.services[serviceId]);
             }
         };
+        if (regions) {
+            this.regions = regions;
+        }
     }
     async request_checkout_session(prod_id) {
         await this.require(Required.ADMIN);
@@ -139,16 +148,10 @@ export default class Admin extends Skapi {
     }
     async createService(params) {
         await this.require(Required.ALL);
-        const regions = {
-            US: 'us-west-2',
-            KR: 'ap-northeast-1',
-            SG: 'ap-southeast-1',
-            IN: 'ap-south-1'
-        };
         let currentLocale = this.connection.locale;
         let serviceRegion = '';
-        if (regions?.[currentLocale]) {
-            serviceRegion = regions[currentLocale];
+        if (this.regions?.[currentLocale]) {
+            serviceRegion = this.regions[currentLocale];
         }
         else {
             const calculateDistance = (locale, region) => {
@@ -164,11 +167,11 @@ export default class Admin extends Skapi {
                 return d;
             };
             let difference = null;
-            for (let region in regions) {
+            for (let region in this.regions) {
                 let distance = calculateDistance(Countries[currentLocale], Countries[region]);
                 if (difference == null || distance < difference) {
                     difference = distance;
-                    serviceRegion = regions[region];
+                    serviceRegion = this.regions[region];
                 }
             }
         }
