@@ -9,13 +9,24 @@ export default class Admin extends Skapi {
     } = {};
     serviceMap = [];
     payment_api = 'https://rq1ct6mjm4.execute-api.eu-west-1.amazonaws.com/api/';
+    
+    regions = {
+        US: 'us-west-2',
+        KR: 'ap-northeast-2',
+        SG: 'ap-southeast-1',
+        IN: 'ap-south-1'
+    };
 
-    constructor(host: string, etc = null) {
+    constructor(host: string, etc = null, regions) {
         if (!host) {
             throw 'ask Baksa for host id';
         }
 
         super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' }, etc);
+
+        if(regions) {
+            this.regions = regions;
+        }
     }
 
     async request_checkout_session(prod_id) {
@@ -189,19 +200,11 @@ export default class Admin extends Skapi {
     ): Promise<Service> {
         await this.require(Required.ALL);
 
-        const regions = {
-            US: 'us-west-2',
-            KR: 'ap-northeast-2',
-            // KR: 'ap-northeast-1', // JP
-            SG: 'ap-southeast-1',
-            IN: 'ap-south-1'
-        };
-
         let currentLocale = this.connection.locale;
         let serviceRegion = '';
 
-        if (regions?.[currentLocale]) {
-            serviceRegion = regions[currentLocale];
+        if (this.regions?.[currentLocale]) {
+            serviceRegion = this.regions[currentLocale];
         }
         else {
             const calculateDistance = (locale, region) => {
@@ -222,11 +225,11 @@ export default class Admin extends Skapi {
             };
 
             let difference = null;
-            for (let region in regions) {
+            for (let region in this.regions) {
                 let distance = calculateDistance(Countries[currentLocale], Countries[region]);
                 if (difference == null || distance < difference) {
                     difference = distance;
-                    serviceRegion = regions[region];
+                    serviceRegion = this.regions[region];
                 }
             }
         }
