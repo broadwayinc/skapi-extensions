@@ -84,8 +84,11 @@ export default class Admin extends Skapi {
         }, { auth: true });
     }
     async setServiceOption(params) {
+        let service = this.services[params.serviceId];
         await this.require(Required.ADMIN);
-        return this.request(await this.getAdminEndpoint('service-opt'), { service: params.serviceId, opt: params.option }, { auth: true });
+        let updated = await this.request(await this.getAdminEndpoint('service-opt'), { service: params.serviceId, opt: params.option }, { auth: true });
+        Object.assign(service, updated);
+        return updated;
     }
     async adminLogin(form, option) {
         let { remember = false } = option || {};

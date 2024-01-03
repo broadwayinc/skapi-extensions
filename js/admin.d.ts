@@ -19,7 +19,7 @@ export default class Admin extends Skapi {
         option: {
             'prevent_signup': boolean;
         };
-    }): Promise<any>;
+    }): Promise<Service>;
     adminLogin(form: {
         email: string;
         password: string;
