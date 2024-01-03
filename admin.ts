@@ -82,9 +82,12 @@ export default class Admin extends Skapi {
         option: {
             'prevent_signup': boolean;
         }
-    }) {
+    }): Promise<Service> {
+        let service = this.services[params.serviceId];
         await this.require(Required.ADMIN);
-        return this.request(await this.getAdminEndpoint('service-opt'), { service: params.serviceId, opt: params.option }, { auth: true });
+        let updated = await this.request(await this.getAdminEndpoint('service-opt'), { service: params.serviceId, opt: params.option }, { auth: true });
+        Object.assign(service, updated);
+        return updated;
     }
 
     async adminLogin(
@@ -156,8 +159,6 @@ export default class Admin extends Skapi {
         await this.require(Required.ALL);
         return this.request('ticket', Object.assign(params, { service: serviceId }), { auth: true });
     }
-
-
 
     private insertService(service: Service) {
         if (!this.services[service.service]) {
