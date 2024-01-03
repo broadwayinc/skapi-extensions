@@ -14,6 +14,12 @@ export default class Admin extends Skapi {
     constructor(host: string, etc: any, regions: any);
     request_checkout_session(prod_id: any): Promise<any>;
     getAdminEndpoint: (dest: string, auth?: boolean) => Promise<string>;
+    setServiceOption(params: {
+        serviceId: string;
+        option: {
+            'prevent_signup': boolean;
+        };
+    }): Promise<any>;
     adminLogin(form: {
         email: string;
         password: string;

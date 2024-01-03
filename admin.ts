@@ -9,7 +9,7 @@ export default class Admin extends Skapi {
     } = {};
     serviceMap = [];
     payment_api = 'https://rq1ct6mjm4.execute-api.eu-west-1.amazonaws.com/api/';
-    
+
     regions = {
         US: 'us-west-2',
         KR: 'ap-northeast-2',
@@ -24,7 +24,7 @@ export default class Admin extends Skapi {
 
         super(host, 'skapi', { autoLogin: window.localStorage.getItem('remember') === 'true' }, etc);
 
-        if(regions) {
+        if (regions) {
             this.regions = regions;
         }
     }
@@ -57,6 +57,7 @@ export default class Admin extends Skapi {
                 case 'request-newsletter-sender':
                 case 'set-404':
                 case 'subdomain-info':
+                case 'service-opt':
                     return {
                         public: admin.admin_public,
                         private: admin.admin_private
@@ -74,6 +75,16 @@ export default class Admin extends Skapi {
         };
 
         return (get_ep()?.[auth ? 'private' : 'public'] || '') + dest;
+    }
+
+    async setServiceOption(params: {
+        serviceId: string;
+        option: {
+            'prevent_signup': boolean;
+        }
+    }) {
+        await this.require(Required.ADMIN);
+        return this.request(await this.getAdminEndpoint('service-opt'), { service: params.serviceId, opt: params.option }, { auth: true });
     }
 
     async adminLogin(
@@ -258,7 +269,7 @@ export default class Admin extends Skapi {
     async disableService(serviceId: string): Promise<string> {
         let service = this.services[serviceId];
         if (service.active > 0) {
-            await this.require(Required.ALL);
+            await this.require(Required.ADMIN);
             await this.request(await this.getAdminEndpoint('register-service'), {
                 service: serviceId,
                 execute: 'disable'

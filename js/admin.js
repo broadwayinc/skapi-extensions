@@ -40,6 +40,7 @@ export default class Admin extends Skapi {
                     case 'request-newsletter-sender':
                     case 'set-404':
                     case 'subdomain-info':
+                    case 'service-opt':
                         return {
                             public: admin.admin_public,
                             private: admin.admin_private
@@ -81,6 +82,10 @@ export default class Admin extends Skapi {
             action: 'request_checkout_session',
             lookup_key: prod_id
         }, { auth: true });
+    }
+    async setServiceOption(params) {
+        await this.require(Required.ADMIN);
+        return this.request(await this.getAdminEndpoint('service-opt'), { service: params.serviceId, opt: params.option }, { auth: true });
     }
     async adminLogin(form, option) {
         let { remember = false } = option || {};
@@ -194,7 +199,7 @@ export default class Admin extends Skapi {
     async disableService(serviceId) {
         let service = this.services[serviceId];
         if (service.active > 0) {
-            await this.require(Required.ALL);
+            await this.require(Required.ADMIN);
             await this.request(await this.getAdminEndpoint('register-service'), {
                 service: serviceId,
                 execute: 'disable'
