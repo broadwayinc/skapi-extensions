@@ -81,6 +81,7 @@ export default class Admin extends Skapi {
         serviceId: string;
         option: {
             'prevent_signup': boolean;
+            'client_secret': Record<string, any>;
         }
     }): Promise<Service> {
         let service = this.services[params.serviceId];
