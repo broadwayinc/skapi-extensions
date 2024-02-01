@@ -113,11 +113,11 @@ export default class Admin extends Skapi {
     }
     async registerTicket(serviceId, params) {
         await this.require(Required.ALL);
-        return this.request('ticket', Object.assign(params, { service: serviceId }), { auth: true });
+        return this.request('ticket', Object.assign({ exec: 'reg' }, params, { service: serviceId }), { auth: true });
     }
     async unregisterTicket(serviceId, params) {
         await this.require(Required.ALL);
-        return this.request('ticket', Object.assign(params, { service: serviceId }), { auth: true });
+        return this.request('ticket', Object.assign({ exec: 'unreg' }, params, { service: serviceId }), { auth: true });
     }
     insertService(service) {
         if (!this.services[service.service]) {

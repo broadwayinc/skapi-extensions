@@ -18,6 +18,7 @@ export default class Admin extends Skapi {
         serviceId: string;
         option: {
             'prevent_signup': boolean;
+            'client_secret': Record<string, any>;
         };
     }): Promise<Service>;
     adminLogin(form: {
@@ -36,11 +37,50 @@ export default class Admin extends Skapi {
         userId: string;
     }): Promise<'SUCCESS'>;
     registerTicket(serviceId: string, params: {
-        condition: string;
-        action: string;
+        ticket_id: string;
+        condition?: {
+            user?: {
+                [key: string]: {
+                    value: string;
+                    operator: 'gt' | 'gte' | 'lt' | 'lte' | 'eq' | 'ne' | '>' | '>=' | '<' | '<=' | '=' | '!=';
+                };
+            };
+            record_access?: string;
+            request?: {
+                url: string;
+                method: 'GET' | 'POST';
+                headers?: {
+                    [key: string]: string;
+                };
+                data?: Record<string, any>;
+                params?: Record<string, any>;
+                match: {
+                    target_key: string;
+                    operator: 'gt' | 'gte' | 'lt' | 'lte' | 'eq' | 'ne' | '>' | '>=' | '<' | '<=' | '=' | '!=';
+                    value: string;
+                };
+            };
+        };
+        action?: {
+            access_group: number;
+            record_access?: string;
+            request?: {
+                url: string;
+                method: 'GET' | 'POST';
+                headers?: {
+                    [key: string]: string;
+                };
+                data?: Record<string, any>;
+                params?: Record<string, any>;
+            };
+            upgrade_service?: {
+                service: string;
+                group: number;
+            };
+        };
         desc: string;
-        count: number;
-        time_to_live: number;
+        count?: number;
+        time_to_live?: number;
     }): Promise<string>;
     unregisterTicket(serviceId: string, params: {
         ticket_id: string;
