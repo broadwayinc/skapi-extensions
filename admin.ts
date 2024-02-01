@@ -140,15 +140,54 @@ export default class Admin extends Skapi {
     async registerTicket(
         serviceId: string,
         params: {
-            condition: string;
-            action: string;
+            ticket_id: string;
+            condition?: {
+                user?: {
+                    [key: string]: {
+                        value: string;
+                        operator: 'gt' | 'gte' | 'lt' | 'lte' | 'eq' | 'ne' | '>' | '>=' | '<' | '<=' | '=' | '!=';
+                    };
+                },
+                record_access?: string; // record id user should have access to
+                request?: {
+                    url: string;
+                    method: 'GET' | 'POST';
+                    headers?: {
+                        [key: string]: string;
+                    };
+                    data?: Record<string, any>;
+                    params?: Record<string, any>;
+                    match: {
+                        target_key: string; // key.to.match
+                        operator: 'gt' | 'gte' | 'lt' | 'lte' | 'eq' | 'ne' | '>' | '>=' | '<' | '<=' | '=' | '!=';
+                        value: string;
+                    }
+                }
+            };
+            action?: {
+                access_group: number; // group number to give access to the user
+                record_access?: string; // record id to give access to the user
+                request?: {
+                    url: string;
+                    method: 'GET' | 'POST';
+                    headers?: {
+                        [key: string]: string;
+                    };
+                    data?: Record<string, any>;
+                    params?: Record<string, any>;
+                },
+                upgrade_service?: {
+                    service: string; // service id to upgrade to
+                    group: number; // group number to upgrade to
+                }
+            };
             desc: string;
-            count: number;
-            time_to_live: number;
+            count?: number;
+            time_to_live?: number;
         }
     ): Promise<string> {
         await this.require(Required.ALL);
-        return this.request('ticket', Object.assign(params, { service: serviceId }), { auth: true });
+        return this.request('ticket', Object.assign({ exec: 'reg' }, params, { service: serviceId }), { auth: true });
     }
 
     async unregisterTicket(
@@ -158,7 +197,7 @@ export default class Admin extends Skapi {
         }
     ): Promise<string> {
         await this.require(Required.ALL);
-        return this.request('ticket', Object.assign(params, { service: serviceId }), { auth: true });
+        return this.request('ticket', Object.assign({ exec: 'unreg' }, params, { service: serviceId }), { auth: true });
     }
 
     private insertService(service: Service) {
