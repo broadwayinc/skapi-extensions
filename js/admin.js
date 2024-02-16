@@ -111,14 +111,6 @@ export default class Admin extends Skapi {
         await this.request('remove-account', { service: serviceId, delete: params.userId }, { auth: true });
         return 'SUCCESS';
     }
-    async registerTicket(serviceId, params) {
-        await this.require(Required.ALL);
-        return this.request('ticket', Object.assign({ exec: 'reg' }, params, { service: serviceId }), { auth: true });
-    }
-    async unregisterTicket(serviceId, params) {
-        await this.require(Required.ALL);
-        return this.request('ticket', Object.assign({ exec: 'unreg' }, params, { service: serviceId }), { auth: true });
-    }
     insertService(service) {
         if (!this.services[service.service]) {
             let keyValue = service.timestamp;
@@ -353,29 +345,11 @@ export default class Admin extends Skapi {
     }
     async uploadHostFiles(formData, params) {
         await this.require(Required.ADMIN);
-        if (!params?.serviceId) {
-            throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
-        }
-        return this.uploadFiles(formData, {
+        return this.hostFiles(formData, {
             service: params.serviceId,
-            request: 'host',
-            nestKey: params.nestKey,
+            dir: params.nestKey,
             progress: params?.progress
         });
-    }
-    async deleteRecFiles(params) {
-        await this.require(Required.ADMIN);
-        if (!params?.serviceId) {
-            throw new SkapiError('"params.serviceId" is required.', { code: 'INVALID_PARAMETER' });
-        }
-        if (!params?.endpoints) {
-            throw new SkapiError('"params.endpoints" is required.', { code: 'INVALID_PARAMETER' });
-        }
-        return this.request('del-files', {
-            service: params.serviceId,
-            endpoints: params.endpoints,
-            storage: 'records'
-        }, { auth: true, method: 'post' });
     }
     async deleteHostFiles(params) {
         await this.require(Required.ADMIN);
